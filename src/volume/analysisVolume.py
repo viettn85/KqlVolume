@@ -114,12 +114,7 @@ def getHighRatios():
     portfolio = []
     target = []
     message = ""
-    if isCafefNotUpdated():
-        if isTradingTime():
-            updatePrices(os.getenv('data_realtime'))
-        dataLocation = 'data_realtime'
-    else:
-        dataLocation = 'data_market'
+    dataLocation = 'data_market'
     for s in stocks:
         try:
             df = pd.read_csv("data/active/{}.csv".format(s), index_col = "Date")
@@ -186,15 +181,14 @@ def joinTradeVol(reportDf, highList, filename):
 
 def getIntradays():
     print("Update intradays")
-    if isTradingTime():
-        stocks = getStocks(os.getenv('all_stocks'))
-        date = datetime.now().strftime(DATE_FORMAT)
-        try:
-            os.mkdir("data/intraday/{}".format(date)) 
-        except:
-            logger.info("Folder {} existed".format(date))
-        for stock in stocks:
-            getIntraday(date, stock)
+    stocks = getStocks(os.getenv('all_stocks'))
+    date = datetime.now().strftime(DATE_FORMAT)
+    try:
+        os.mkdir("data/intraday/{}".format(date)) 
+    except:
+        logger.info("Folder {} existed".format(date))
+    for stock in stocks:
+        getIntraday(date, stock)
 
 def getIntraday(date, stock):
     URL = "https://api4.fialda.com/api/services/app/Stock/GetIntraday?symbol={}".format(stock)
