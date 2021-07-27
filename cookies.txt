@@ -1,0 +1,22 @@
+# HTTP Cookie File downloaded with cookies.txt by Genuinous @genuinous
+# This file can be used by wget, curl, aria2c and other standard compliant tools.
+# Usage Examples:
+#   1) wget -x --load-cookies cookies.txt "https://fwt.fialda.com/dashboard"
+#   2) curl --cookie cookies.txt "https://fwt.fialda.com/dashboard"
+#   3) aria2c --load-cookies cookies.txt "https://fwt.fialda.com/dashboard"
+#
+fialda.com	FALSE	/	FALSE	1782787326	Abp.Localization.CultureName	en-US
+fwt.fialda.com	FALSE	/	FALSE	1782787336	Abp.Localization.CultureName	en-US
+fwt.fialda.com	FALSE	/	FALSE	1658708481	Abp.AuthToken	
+.fialda.com	TRUE	/	FALSE	1690244482	_ga	GA1.2.995832288.1625107339
+.fwt.fialda.com	TRUE	/	FALSE	253402257600	G_ENABLED_IDPS	google
+fwt.fialda.com	FALSE	/	FALSE	1658708481	enc_auth_token	
+.fialda.com	TRUE	/	FALSE	1627258882	_gid	GA1.2.1050836327.1627172462
+.fialda.com	TRUE	/	FALSE	1627172522	_gat	1
+.fwt.fialda.com	TRUE	/	TRUE	0	G_AUTHUSER_H	0
+fwt.fialda.com	FALSE	/	FALSE	1658708481	Abp.LongAuthToken	ee37492d-16ee-4039-afec-93bff6e0dbb6
+.fialda.com	TRUE	/	FALSE	1660868484	__hstc	171395519.1a27bd9d264c8403d658f3d63096ebed.1627172484425.1627172484425.1627172484425.1
+.fialda.com	TRUE	/	FALSE	1627174284	__hssc	171395519.1.1627172484426
+.fialda.com	TRUE	/	FALSE	1660868484	hubspotutk	1a27bd9d264c8403d658f3d63096ebed
+.fialda.com	TRUE	/	FALSE	0	__hssrc	1
+.fwt.fialda.com	TRUE	/	TRUE	1660868486	messagesUtk	0f03929d229b495a853b168effae6474
