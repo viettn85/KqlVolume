@@ -1,5 +1,5 @@
 import sys
-sys.path.append('src/api')
+sys.path.append('src/crawler')
 sys.path.append('src/util')
 
 from dotenv import load_dotenv
@@ -15,6 +15,7 @@ import pandas_ta as ta
 from stockstats import StockDataFrame
 from utils import *
 from analysisVolume import *
+from dailyCrawler import *
 from ta.trend import ADXIndicator
 
 
@@ -199,6 +200,8 @@ def sendCategories():
 
 
 if __name__ == '__main__':
+    data_market = os.getenv('data_market')
+    updateIntraday(data_market)
     filterStockByValues()
     categorizeStocks()
     sendCategories()
