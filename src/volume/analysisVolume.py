@@ -410,9 +410,6 @@ def autoScan():
     sendCashflowReports()
     extractRatios()
     sendEmail("High ratio reports", getHighRatios(), "html")
-    actionReportMsg = getActionReports()
-    if actionReportMsg != '':
-        sendEmail("Abnormal Actions", getActionReports(), "html")
 
 if __name__ == '__main__':
     if (sys.argv[1] == 'active'):
