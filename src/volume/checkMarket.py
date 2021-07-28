@@ -34,7 +34,7 @@ def getMessage(session, sellDf, buyDf):
     return message
 
 def getIndustryValues():
-    industryDf = pd.read_csv(os.getenv("industries"), index_col="Stock")
+    industryDf = pd.read_csv(data_location + os.getenv("industries"), index_col="Stock")
     valueDf = pd.read_csv(os.getenv("high_value_stocks"), header=None)
     valueDf.columns = ['Stock', 'Value']
     valueDf.set_index('Stock', inplace=True)
@@ -86,12 +86,12 @@ def checkCashflow(column):
     print(df.head(20))
 
 def checkValue():
-    print(pd.read_csv(os.getenv("high_value_stocks"), header=None).head(20))
+    print(pd.read_csv(data_location + os.getenv("high_value_stocks"), header=None).head(20))
 
 def checkStock(stock):
     data = data_location + os.getenv("data_market")
     df = pd.read_csv("{}{}.csv".format(data, stock))
-    if stock in list(pd.read_csv(os.getenv("high_value_stocks"), header=None)[0]):
+    if stock in list(pd.read_csv(data_location + os.getenv("high_value_stocks"), header=None)[0]):
         print("{} is a high value stock".format(stock))
         df = pd.read_csv("{}{}.csv".format(data, stock))
         print("\nVALUES:")

@@ -21,7 +21,7 @@ DATE_FORMAT = "%Y-%m-%d"
 data_location = os.getenv("data")
 
 def isSideway(stock, dataLocation):
-    df = pd.read_csv("{}{}.csv".format(os.getenv(dataLocation), stock), parse_dates=['Date'], index_col=['Date'])
+    df = pd.read_csv("{}{}.csv".format(data_location + os.getenv(dataLocation), stock), parse_dates=['Date'], index_col=['Date'])
     sideway = True
     price = df.Close[0]
     for i in range(1, 3):
@@ -74,6 +74,7 @@ def getStocks(stockFile):
 def getLastCashflow():
     list_of_files = glob.glob(data_location + os.getenv("data_cashflow") + "*") # * means all if need specific format then *.csv
     latest_file = max(list_of_files, key=os.path.getmtime)
+    print(latest_file)
     return latest_file
 
 def sendEmail(subject, text, style):

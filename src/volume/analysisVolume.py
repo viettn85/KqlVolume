@@ -119,19 +119,20 @@ def getHighRatios():
     for s in stocks:
         try:
             df = pd.read_csv(data_location + "data/active/{}.csv".format(s), index_col = "Date")
+            row = 0
             if s in portfolioStocks:
-                portfolio.append({"Stock": s, "BuyVolRatio": df.BuyVolRatio[0], "BuyVol": df.BuyVol[0], "SellVol": df.SellVol[0]})
+                portfolio.append({"Stock": s, "BuyVolRatio": df.BuyVolRatio[row], "BuyVol": df.BuyVol[row], "SellVol": df.SellVol[row]})
             if not isSideway(s, dataLocation):
                 continue
-            all.append({"Stock": s, "BuyVolRatio": df.BuyVolRatio[0], "BuyVol": df.BuyVol[0], "SellVol": df.SellVol[0]})
+            all.append({"Stock": s, "BuyVolRatio": df.BuyVolRatio[row], "BuyVol": df.BuyVol[row], "SellVol": df.SellVol[row]})
             if s in targetStocks:
-                target.append({"Stock": s, "BuyVolRatio": df.BuyVolRatio[0], "BuyVol": df.BuyVol[0], "SellVol": df.SellVol[0]})
-            if (df.BuyVolRatio[0] > 60) and (df.BuyVolRatio[1] < 50):
-                highRatioStocks.append({"Stock": s, "BuyVolRatio": df.BuyVolRatio[0], "BuyVol": df.BuyVol[0], "SellVol": df.SellVol[0]})
-            if (df.BuyVol[1] * 1.5 <= df.BuyVol[0]) and (df.BuyVolRatio[0] > 50):
-                highBuyVols.append({"Stock": s, "BuyVolRatio": df.BuyVolRatio[0], "BuyVol": df.BuyVol[0], "SellVol": df.SellVol[0]})
-            if (df.BuyVol[1] * 1.5 <= df.BuyVol[0]) and (df.BuyVolRatio[0] > 50) and (df.BuyVolRatio[1] > 50):
-                high.append({"Stock": s, "BuyVolRatio": df.BuyVolRatio[0], "BuyVol": df.BuyVol[0], "SellVol": df.SellVol[0]})
+                target.append({"Stock": s, "BuyVolRatio": df.BuyVolRatio[row], "BuyVol": df.BuyVol[row], "SellVol": df.SellVol[row]})
+            if (df.BuyVolRatio[row] > 60) and (df.BuyVolRatio[row + 1] > 50):
+                highRatioStocks.append({"Stock": s, "BuyVolRatio": df.BuyVolRatio[row], "BuyVol": df.BuyVol[row], "SellVol": df.SellVol[row]})
+            if (df.BuyVol[row + 1] * 1.5 <= df.BuyVol[row]) and (df.BuyVolRatio[row] > 50):
+                highBuyVols.append({"Stock": s, "BuyVolRatio": df.BuyVolRatio[row], "BuyVol": df.BuyVol[row], "SellVol": df.SellVol[row]})
+            if (df.BuyVol[row + 1] * 1.5 <= df.BuyVol[row]) and (df.BuyVolRatio[0] > 50) and (df.BuyVolRatio[row + 1] > 50):
+                high.append({"Stock": s, "BuyVolRatio": df.BuyVolRatio[row], "BuyVol": df.BuyVol[row], "SellVol": df.SellVol[row]})
         except:
             aa = ""
     lastCashflow = getLastCashflow()
@@ -178,6 +179,9 @@ def joinTradeVol(reportDf, highList, filename):
         return html_style_basic(finalDf.head(10))
     finalDf = finalDf[(finalDf.G >= int(os.getenv('gap'))) & (finalDf.B >= int(os.getenv('buy')))]
     finalDf.to_csv(data_location + "data/active/{}.csv".format(filename))
+    print(filename)
+    print(highList)
+    print(finalDf)
     return html_style_basic(finalDf)
 
 def getIntradays():
