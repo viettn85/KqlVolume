@@ -22,6 +22,7 @@ from utils import *
 pd.set_option('mode.chained_assignment', None)
 DATE_FORMAT = "%Y-%m-%d"
 today = datetime.now().strftime(DATE_FORMAT)
+data_location = os.getenv("data")
 
 def extractRatio(s, startDate, endDate):
     url = "https://api4.fialda.com/api/services/app/StockInfo/GetTradingChartData?symbol={}&interval=1d&fromTime={}T08:45:00.000&toTime={}T15:00:00.000".format(s, startDate, endDate)
@@ -79,10 +80,10 @@ def extractRatios():
         if len(df) > 0:
             # currentDf = pd.read_csv("data/active/{}.csv".format(s), index_col="Date")
             try:
-                currentDf = pd.read_csv("data/active/{}.csv".format(s))
+                currentDf = pd.read_csv(data_location + "data/active/{}.csv".format(s))
                 currentDf = currentDf[currentDf.Date != df.Date[0]]
                 df = df.append(currentDf)
-                df.to_csv("data/active/{}.csv".format(s), index=None)
+                df.to_csv(data_location + "data/active/{}.csv".format(s), index=None)
             except:
                 a = 0
     
@@ -92,11 +93,11 @@ def extractHistoricalRatios(stocks):
     for s in stocks:
         volList = []
         df = extractRatio(s, startDate.strftime(DATE_FORMAT), endDate.strftime(DATE_FORMAT))
-        df.to_csv("data/active/{}.csv".format(s))
+        df.to_csv(data_location + "data/active/{}.csv".format(s))
 
 def showRatios(s):
     try:
-        print(pd.read_csv("data/active/{}.csv".format(s), index_col = "Date"))
+        print(pd.read_csv(data_location + "data/active/{}.csv".format(s), index_col = "Date"))
     except:
         print(extractRealtimeRatio(s, today, today))
         endDate = datetime.now()
@@ -117,7 +118,7 @@ def getHighRatios():
     dataLocation = 'data_market'
     for s in stocks:
         try:
-            df = pd.read_csv("data/active/{}.csv".format(s), index_col = "Date")
+            df = pd.read_csv(data_location + "data/active/{}.csv".format(s), index_col = "Date")
             if s in portfolioStocks:
                 portfolio.append({"Stock": s, "BuyVolRatio": df.BuyVolRatio[0], "BuyVol": df.BuyVol[0], "SellVol": df.SellVol[0]})
             if not isSideway(s, dataLocation):
@@ -176,7 +177,7 @@ def joinTradeVol(reportDf, highList, filename):
         finalDf.sort_values("BuyVolRatio", ascending = False, inplace=True)
         return html_style_basic(finalDf.head(10))
     finalDf = finalDf[(finalDf.G >= int(os.getenv('gap'))) & (finalDf.B >= int(os.getenv('buy')))]
-    finalDf.to_csv("data/active/{}.csv".format(filename))
+    finalDf.to_csv(data_location + "data/active/{}.csv".format(filename))
     return html_style_basic(finalDf)
 
 def getIntradays():
@@ -184,7 +185,7 @@ def getIntradays():
     stocks = getStocks(os.getenv('all_stocks'))
     date = datetime.now().strftime(DATE_FORMAT)
     try:
-        os.mkdir("data/intraday/{}".format(date)) 
+        os.mkdir(data_location + "data/intraday/{}".format(date)) 
     except:
         logger.info("Folder {} existed".format(date))
     for stock in stocks:
@@ -199,15 +200,15 @@ def getIntraday(date, stock):
     df = pd.DataFrame(tradingData)
     df = df[df.side != 'BS']
     df = df[["tradingTime","volume","price","side"]]
-    df.to_csv("data/intraday/{}/{}.csv".format(date, stock), index=None)
+    df.to_csv(data_location + "data/intraday/{}/{}.csv".format(date, stock), index=None)
 
 def reportHourVolumes(stock):
     date = getLastTradingDay()
-    highValueDf = pd.read_csv(os.getenv('high_value_stocks'), header=None)
+    highValueDf = pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)
     highValueDf.columns = ['Stock', 'Value']
     highValueDf.set_index('Stock', inplace=True)
     try: 
-        all_df = pd.read_csv("data/intraday/{}/{}.csv".format(date, stock), parse_dates=['tradingTime'])
+        all_df = pd.read_csv(data_location + "data/intraday/{}/{}.csv".format(date, stock), parse_dates=['tradingTime'])
         all_df['Hour'] = all_df.tradingTime.dt.hour
         tradeCounts = []
         bigTradeCounts = []
@@ -242,7 +243,7 @@ def reportHourVolumes(stock):
     
 def reportCashflows():
     stocks = getStocks(os.getenv('high_value_stocks'))
-    highValueDf = pd.read_csv(os.getenv('high_value_stocks'), header=None)
+    highValueDf = pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)
     highValueDf.columns = ['Stock', 'Value']
     highValueDf.set_index('Stock', inplace=True)
     date = getLastTradingDay()
@@ -252,7 +253,7 @@ def reportCashflows():
     # stocks = ['AAA', 'TCH', 'HBC', 'DRC', 'MWG']
     for stock in stocks:
         try: 
-            df = pd.read_csv("data/intraday/{}/{}.csv".format(date, stock))
+            df = pd.read_csv(data_location + "data/intraday/{}/{}.csv".format(date, stock))
             sideDict  = df.groupby(['side']).agg('count')['price'].to_dict()
             sideDict['Stock'] = stock
             tradeCounts.append(sideDict)
@@ -275,7 +276,7 @@ def reportCashflows():
     finalDf["G"] = finalDf.B - finalDf.S
     finalDf["BG"] = finalDf.BB - finalDf.BS
     finalDf = finalDf[["Stock", "B", "S", "G", "BB", "BS", "BG"]]
-    finalDf.to_csv("data/cashflow/{}.csv".format(date), index=None)
+    finalDf.to_csv(data_location + "data/cashflow/{}.csv".format(date), index=None)
     # print(finalDf)
 
 def analyzeActiveVol(stockList):
@@ -283,10 +284,10 @@ def analyzeActiveVol(stockList):
     highActiveDf = pd.DataFrame()
     highVolDf = pd.DataFrame()
     try:
-        stocks = list(pd.read_csv("data/stock/{}.csv".format(stockList), header=None)[0])
+        stocks = list(pd.read_csv(data_location + "data/stock/{}.csv".format(stockList), header=None)[0])
         for stock in stocks:
             try:
-                stockDf = pd.read_csv("data/active/{}.csv".format(stock))
+                stockDf = pd.read_csv(data_location + "data/active/{}.csv".format(stock))
                 stockDf['Stock'] = stock
                 df = df.append(stockDf[0:1])
                 if (stockDf.BuyVolRatio[0] > 50) and (stockDf.BuyVolRatio[1] > 50):
@@ -355,7 +356,7 @@ def analyzeCashflow(action, stockList):
         if ("," in stockList) or (len(stockList) == 3):
             stocks = stockList.split(',')
         else:
-            stocks = list(pd.read_csv("data/stock/{}.csv".format(stockList), header=None)[0])
+            stocks = list(pd.read_csv(data_location + "data/stock/{}.csv".format(stockList), header=None)[0])
         df = df[df.index.isin(stocks)]
         df.sort_values(["BG", "G"], ascending=False, inplace=True)
         print(df)
@@ -401,9 +402,9 @@ def sendCashflowReports():
 def autoScan():
     getIntradays()
     reportCashflows()
-    # sendCashflowReports()
-    # extractRatios()
-    # sendEmail("High ratio reports", getHighRatios(), "html")
+    sendCashflowReports()
+    extractRatios()
+    sendEmail("High ratio reports", getHighRatios(), "html")
 
 if __name__ == '__main__':
     if (sys.argv[1] == 'active'):

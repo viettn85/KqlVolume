@@ -21,7 +21,7 @@ from utils import *
 pd.set_option('mode.chained_assignment', None)
 DATE_FORMAT = "%Y-%m-%d"
 today = datetime.now().strftime(DATE_FORMAT)
-
+data_location = os.getenv("data")
 
 def getMessage(session, sellDf, buyDf):
     message = ""
@@ -67,7 +67,7 @@ def checkActiveVol(metric):
     stocks = getStocks(os.getenv('portfolio'))
     for stock in stocks:
         try:
-            stockDf = pd.read_csv("{}{}.csv".format(os.getenv("data_active"), stock))
+            stockDf = pd.read_csv("{}{}.csv".format(data_location + os.getenv("data_active"), stock))
             stockDf['Stock'] = stock
             df = df.append(stockDf[0:1])
         except:
@@ -89,7 +89,7 @@ def checkValue():
     print(pd.read_csv(os.getenv("high_value_stocks"), header=None).head(20))
 
 def checkStock(stock):
-    data = os.getenv("data_market")
+    data = data_location + os.getenv("data_market")
     df = pd.read_csv("{}{}.csv".format(data, stock))
     if stock in list(pd.read_csv(os.getenv("high_value_stocks"), header=None)[0]):
         print("{} is a high value stock".format(stock))
@@ -100,14 +100,14 @@ def checkStock(stock):
     else:
         print("{} is NOT a high value stock".format(stock))
     print("\nACTIVE VOLS:")
-    print(pd.read_csv("{}{}.csv".format(os.getenv("data_active"), stock), index_col = "Date").head(10))
+    print(pd.read_csv("{}{}.csv".format(data_location + os.getenv("data_active"), stock), index_col = "Date").head(10))
     print("\nTRADE COUNTS:")
     today = datetime.now()
     cashflowDf = pd.DataFrame()
     for i in range(0, 14):
         date = (today + relativedelta(days=-i)).strftime(DATE_FORMAT)
         try:
-            df = pd.read_csv("{}{}.csv".format(os.getenv("data_cashflow"), date))
+            df = pd.read_csv("{}{}.csv".format(data_location + os.getenv("data_cashflow"), date))
             df['Date'] = date
             cashflowDf = cashflowDf.append(df[df.Stock == stock])
         except:

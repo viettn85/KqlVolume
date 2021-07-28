@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path='stock.env')
 
 DATE_FORMAT = "%Y-%m-%d"
+data_location = os.getenv("data")
 
 def isSideway(stock, dataLocation):
     df = pd.read_csv("{}{}.csv".format(os.getenv(dataLocation), stock), parse_dates=['Date'], index_col=['Date'])
@@ -68,10 +69,10 @@ def getCurrentTime():
     return str(now.strftime("%H:%M"))
 
 def getStocks(stockFile):
-    return list(pd.read_csv(stockFile, header=None)[0])
+    return list(pd.read_csv(data_location + stockFile, header=None)[0])
 
 def getLastCashflow():
-    list_of_files = glob.glob(os.getenv("data_cashflow") + "*") # * means all if need specific format then *.csv
+    list_of_files = glob.glob(data_location + os.getenv("data_cashflow") + "*") # * means all if need specific format then *.csv
     latest_file = max(list_of_files, key=os.path.getmtime)
     return latest_file
 

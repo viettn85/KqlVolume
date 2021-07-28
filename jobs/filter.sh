@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /root/apps/KqlVolume/
+cd /apps/KqlVolume/
 nohup python3 src/volume/filterStocks.py

@@ -24,10 +24,11 @@ load_dotenv(dotenv_path='stock.env')
 
 results = 'data/market/results/'
 filtered = 'data/market/intraday/'
+data_location = os.getenv('data')
 
 
 def readFile(stock, location):
-    df = pd.read_csv("{}{}.csv".format(location, stock))
+    df = pd.read_csv("{}{}.csv".format(data_location + location, stock))
     df.sort_values(by="date", ascending=False, inplace=True)
     df.rename(columns={'date': 'Date', 'close': 'Close', 'open': 'Open',
               'change': 'Change', 'high': 'High', 'low': 'Low', 'volume': 'Volume'}, inplace=True)
@@ -71,13 +72,13 @@ def getIndicators(df):
 
 
 def filterStockByValues():
-    stocks = list(pd.read_csv(os.getenv('all_stocks'), header=None)[0])
+    stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
     # stocks = ["VPB"]
     highValueStocks = []
     values = []
     dataLocation = 'data_market'
     for stock in stocks:
-        df = pd.read_csv("{}{}.csv".format(
+        df = pd.read_csv("{}{}.csv".format(data_location + 
             os.getenv(dataLocation), stock), parse_dates=['Date'], index_col=['Date'])
         df.sort_index(inplace=True)
         df["MA20"] = df.Volume.rolling(window=20).mean()
@@ -92,12 +93,12 @@ def filterStockByValues():
         df = pd.DataFrame.from_dict(
             {"Stock": highValueStocks, "Value": values})
         df.sort_values("Value", ascending=False, inplace=True)
-        df.to_csv(os.getenv("high_value_stocks"), header=None, index=None)
+        df.to_csv(data_location + os.getenv("high_value_stocks"), header=None, index=None)
         # print(df.head(20))
 
 
 def categorizeStocks():
-    df = pd.read_csv(os.getenv('high_value_stocks'), header=None)
+    df = pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)
     df.columns = ['Stock', 'Value']
     df = df[df.Value > 8]
     stocks = list(df.Stock)
@@ -109,14 +110,10 @@ def categorizeStocks():
     missedEntry = []
     sideways = []
     bottoms = []
-    if isCafefNotUpdated():
-        dataLocation = 'data_realtime'
-    else:
-        dataLocation = 'data_market'
+    dataLocation = 'data_market'
     for stock in stocks:
         # print(stock)
-        df = pd.read_csv("{}{}.csv".format(
-            os.getenv(dataLocation), stock), parse_dates=['Date'], index_col=['Date'])
+        df = pd.read_csv("{}{}.csv".format(data_location + os.getenv(dataLocation), stock), parse_dates=['Date'], index_col=['Date'])
         getIndicators(df)
         # print(df.head())
         # if df.Close[0] > df.EMA200[0]:
@@ -148,37 +145,28 @@ def categorizeStocks():
             sideways.append(stock)
         if (df.ADX[0] >= 16) and (df.PDI[0] >= df.PDI[1]) and (df.NDI[0] <= df.NDI[1]) and (df.ADX[0] > df.ADX[1]) and (df.ADX[1] <= df.ADX[2]):
             bottoms.append(stock)
-    print(len(soft_zones))
     if len(uptrends) > 0:
-        pd.DataFrame.from_dict({"Stock": uptrends}).to_csv(
-            os.getenv('uptrend_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": uptrends}).to_csv(data_location +  os.getenv('uptrend_stocks'), index=None, header=None)
     if len(missedEntry) > 0:
-        pd.DataFrame.from_dict({"Stock": missedEntry}).to_csv(
-            os.getenv('miss_entry_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": missedEntry}).to_csv(data_location + os.getenv('miss_entry_stocks'), index=None, header=None)
     if len(corrections) > 0:
-        pd.DataFrame.from_dict({"Stock": corrections}).to_csv(
-            os.getenv('correction_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": corrections}).to_csv(data_location + os.getenv('correction_stocks'), index=None, header=None)
     if len(soft_zones) > 0:
-        pd.DataFrame.from_dict({"Stock": soft_zones}).to_csv(
-            os.getenv(os.getenv('soft_zone_stocks')), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": soft_zones}).to_csv(data_location + os.getenv('soft_zone_stocks'), index=None, header=None)
     if len(ducky) > 0:
-        pd.DataFrame.from_dict({"Stock": ducky}).to_csv(
-            os.getenv('ducky_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": ducky}).to_csv(data_location + os.getenv('ducky_stocks'), index=None, header=None)
     if len(sideways) > 0:
-        pd.DataFrame.from_dict({"Stock": sideways}).to_csv(
-            os.getenv('sideway_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": sideways}).to_csv(data_location + os.getenv('sideway_stocks'), index=None, header=None)
     if len(bottoms) > 0:
-        pd.DataFrame.from_dict({"Stock": bottoms}).to_csv(
-            os.getenv('bottom_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": bottoms}).to_csv(data_location + os.getenv('bottom_stocks'), index=None, header=None)
     if len(missedEntry) > 0 and len(soft_zones) > 0:
         potentialStocks = np.intersect1d(missedEntry, soft_zones)
-        pd.DataFrame.from_dict({"Stock": potentialStocks}).to_csv(
-            os.getenv('potential_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": potentialStocks}).to_csv(data_location + os.getenv('potential_stocks'), index=None, header=None)
 
 
 def readCategory(stockList):
     try:
-        df = pd.read_csv(os.getenv(stockList), header=None)
+        df = pd.read_csv(data_location + os.getenv(stockList), header=None)
         if len(df) > 0:
             message = "<H2>{} {}</H2>".format(len(df),
                                               stockList.replace("_", " "))
@@ -200,8 +188,8 @@ def sendCategories():
 
 
 if __name__ == '__main__':
-    data_market = os.getenv('data_market')
-    updateIntraday(data_market)
+    data_market = data_location + os.getenv('data_market')
+    # updateIntraday(data_market)
     filterStockByValues()
     categorizeStocks()
     sendCategories()

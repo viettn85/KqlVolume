@@ -13,8 +13,8 @@ logger = logging.getLogger()
 
 load_dotenv(dotenv_path='stock.env')
 
-data_high_vol = os.getenv("data_high_vol")
-data_market = os.getenv('data_market')
+data_location = os.getenv("data")
+data_market = data_location + os.getenv('data_market')
 
 LINK = 'https://s.cafef.vn/Lich-su-giao-dich-{}-1.chn'
 RAW_NAME = ['Ngày', 'Giá đóng cửa', 'GD khớp lệnh',
