@@ -1,0 +1,22 @@
+kqls vol list portfolio: Check vol ratios of portfolio
+kqls vol list CEO,PVD: Check vol ratios of CEO,PVD
+
+kqls vol active: Download last month active ratios
+kqls vol active update: Update today ratios
+kqls vol active high: Report high ratios and high vols
+kqls vol active PVD
+
+Download and report Intraday
+- kqls vol intraday: Download today intraday data
+- kqls vol sides: create today report side data
+Analyze sides:
+- kqls vol cash B10
+- kqls vol cash S10
+- kqls vol cash BB10
+- kqls vol cash BS10
+- kqls vol cash list portfolio
+- kqls vol cash list CEO,PVD
+- kqls vol cash list CEO
+
+Check stock:
+- kqls check PVS
