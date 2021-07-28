@@ -89,11 +89,7 @@ def checkValue():
     print(pd.read_csv(os.getenv("high_value_stocks"), header=None).head(20))
 
 def checkStock(stock):
-    currentTime = getCurrentTime()
-    if (datetime.today().weekday() < 5) and (currentTime > "09:15") and (currentTime < "20:30"):
-        data = os.getenv("data_realtime")
-    else:
-        data = os.getenv("data_market")
+    data = os.getenv("data_market")
     df = pd.read_csv("{}{}.csv".format(data, stock))
     if stock in list(pd.read_csv(os.getenv("high_value_stocks"), header=None)[0]):
         print("{} is a high value stock".format(stock))
