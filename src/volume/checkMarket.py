@@ -127,5 +127,3 @@ if __name__ == '__main__':
         checkValue()
     if (len(sys.argv[1]) == 3) and ((sys.argv[1] != 'ato' and (sys.argv[1] != 'atc'))):
         checkStock(sys.argv[1])
-    
-    

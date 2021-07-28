@@ -53,7 +53,7 @@ def isATC():
 def getLastTradingDay():
     if datetime.now().weekday() < 5:
         currentTime = getCurrentTime()
-        if (currentTime > "00:00") and (currentTime < "09:00"):
+        if (currentTime > "00:00") and (currentTime < "02:00"):
             return (datetime.now() + relativedelta(days=-1)).strftime(DATE_FORMAT)
         else:
             return datetime.now().strftime(DATE_FORMAT)

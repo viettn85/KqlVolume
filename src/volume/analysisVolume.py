@@ -401,9 +401,9 @@ def sendCashflowReports():
 def autoScan():
     getIntradays()
     reportCashflows()
-    sendCashflowReports()
-    extractRatios()
-    sendEmail("High ratio reports", getHighRatios(), "html")
+    # sendCashflowReports()
+    # extractRatios()
+    # sendEmail("High ratio reports", getHighRatios(), "html")
 
 if __name__ == '__main__':
     if (sys.argv[1] == 'active'):
