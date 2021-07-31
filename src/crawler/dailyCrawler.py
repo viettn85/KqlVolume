@@ -81,12 +81,13 @@ class Crawl:
 def updateIntraday(location):
     today = datetime.today().strftime("%Y-%m-%d")
     logger.info("Started updating on {}".format(today))
-    csvFiles = getCsvFiles(location)
+    # csvFiles = getCsvFiles(location)
     # csvFiles = ['VIB.csv']
-    for i, csv in enumerate(csvFiles):
+    stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
+    for i, stock in enumerate(stocks):
         try:
-            logger.info((i, csv[0:3]))
-            Crawl(csv[0:3], location).run()
+            logger.info((i, stock))
+            Crawl(stock, location).run()
         except Exception as e:
             logger.error(e)
     logger.info("Ended updating on {}".format(today))

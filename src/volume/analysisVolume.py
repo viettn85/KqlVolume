@@ -179,9 +179,6 @@ def joinTradeVol(reportDf, highList, filename):
         return html_style_basic(finalDf.head(10))
     finalDf = finalDf[(finalDf.G >= int(os.getenv('gap'))) & (finalDf.B >= int(os.getenv('buy')))]
     finalDf.to_csv(data_location + "data/active/{}.csv".format(filename))
-    print(filename)
-    print(highList)
-    print(finalDf)
     return html_style_basic(finalDf)
 
 def getIntradays():
