@@ -6,7 +6,7 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import traceback, os, logging, glob
-
+from pytz import timezone
 from datetime import datetime
 from dateutil.relativedelta import *
 
@@ -29,7 +29,6 @@ def isSideway(stock, dataLocation):
             sideway = False
             break
     return sideway
-    
 
 def isCafefNotUpdated():
     now = datetime.now()
