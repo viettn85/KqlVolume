@@ -125,7 +125,7 @@ def checkDuckyPattern(df):
     else:
         status.append(False)
     criteria.append("ADX Above 20")
-    if df.ADX.iloc[0] >= 20:
+    if round(df.ADX.iloc[0], 0) >= 20:
         status.append(True)
     else:
         status.append(False)
@@ -141,15 +141,21 @@ def scanDucky():
     all_stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
     high_value_stocks = list(pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)[0])
     duckyList = []
+    candidateList = []
     for stock in high_value_stocks:
         data = data_location + os.getenv("data_realtime")
         duckyDf = checkDuckyPattern(pd.read_csv("{}{}.csv".format(data, stock)))
         metricCount = sum(list(duckyDf.Status))
-        if metricCount >= 7:
+        if metricCount == 8:
             duckyList.append(stock)
+        elif metricCount == 7:
+            candidateList.append(stock)
     if len(duckyList) > 0:
         print("There are {} stocks on the Ducky pattern".format(len(duckyList)))
         print(duckyList)
+    if len(candidateList) > 0:
+        print("There are {} candidates of the Ducky pattern".format(len(candidateList)))
+        print(candidateList)
 
 def checkStock(stock):
     data = data_location + os.getenv("data_realtime")

@@ -1,3 +1,14 @@
+Crawl historical data
+- kqls history: Crawl historical active volumes
+- kqls crawl: Crawl historical market data from 2020-01-01
+
+Update data:
+- kqls update daily: Update daily data from cafef
+- kqls update realtime: Update realtime prices, volumes, intraday, active volumes
+
+Filter and Categorize stock lists as the Ducky pattern:
+- kqls filter
+
 Check markets, industries, stocks and scan Ducky patterns:
 - kqls check ducky: Scan all stocks matched Ducky patterns
 - kqls check industries: Report daily industry values (VND Billions)
@@ -8,7 +19,9 @@ Check markets, industries, stocks and scan Ducky patterns:
 - kqls check STOCK(AAA): Report stock data and information
 
 Create reports and send emails:
+- kqls report auto: Make and send cashflow and ratio reports
 - kqls report active STOCK(AAA): Show the active volume report 
 - kqls report scan STOCK_LIST (portfolio): Report for a stock list
+- kqls report sides: Generate the cashflow report
 - kqls report cash ACTION(B10/S10/BB10/BS10): Report the top 10 of B/S/BB/BS
 - kqls report hour STOCK(AAA): Show the hourly cashflow report

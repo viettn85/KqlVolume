@@ -1,9 +1,15 @@
 if [ $1 == 'help' ]
 then
     while read line; do echo $line; done < volume.help
+elif [ $1 == 'helpall' ]
+then
+    while read line; do echo $line; done < volume_full.help
 elif [ $1 == 'history' ] 
 then
-    python3 src/crawler/history.py $2 $3 $4 $5
+    python3 src/crawler/history.py
+elif [ $1 == 'crawl' ] 
+then
+    python3 src/crawler/crawlMarket.py
 elif [ $1 == 'update' ] 
 then
     if [ $2 == 'daily' ]
