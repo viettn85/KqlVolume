@@ -1,14 +1,16 @@
+import sys
+sys.path.append('src/util')
 import requests
 import pandas as pd
-import pytz
 import os
 from pytz import timezone
-from datetime import datetime
 from datetime import datetime, date, timedelta
 from dateutil.relativedelta import *
 from dotenv import load_dotenv
 import logging
 import logging.config
+import math
+from utils import *
 
 load_dotenv(dotenv_path='stock.env')
 
@@ -21,7 +23,7 @@ datetime_format = os.getenv("datetime_format")
 logging.config.fileConfig(fname='log.conf', disable_existing_loggers=False)
 logger = logging.getLogger()
 
-def update(fromDate, toDate):
+def updatePriceAndVolume(fromDate, toDate):
     startTime = getEpoch(fromDate )
     endTime = getEpoch(toDate)
     all_stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
@@ -32,6 +34,8 @@ def update(fromDate, toDate):
     lastCloses = []
     closes = []
     changes = []
+    current_time = getCurrentTime()
+    # all_stocks = ['AAA']
     for stock in all_stocks: 
         URL = "https://chartdata1.mbs.com.vn/pbRltCharts/chart/history?symbol={}&resolution=D&from={}&to={}".format(stock, startTime, endTime)
         response = requests.get(URL)
@@ -48,17 +52,19 @@ def update(fromDate, toDate):
         df = newDf.append(df)
         df.to_csv("{}{}.csv".format(data_realtime, stock), index=None)
         logger.info("Updated {}".format(stock))
-        if df.iloc[0].Volume >= 100000:
+        maVolume = getMAVolume(df)
+        # if (maVolume >= 100000) and (maVolume <= df.Volume.iloc[0]):
+        if (100000 <= df.Volume.iloc[0]):
             ratio = round(df.iloc[0].Volume/df.iloc[1].Volume, 2)
             # print(ratio)
-            if ((current_time >= "02:15") and (current_time <= "03:00") and (ratio >= 1)) or ((current_time >= "03:00") and (current_time <= "04:30") and (ratio >= 1.5)) or ((current_time >= "14:00") and (current_time <= "15:00") and (ratio >= 1.5)) or (ratio >= 2):
+            if (not math.isinf(ratio)) and (((current_time >= "09:15") and (current_time <= "10:00") and (ratio >= 1)) or ((current_time >= "10:00") and (current_time <= "11:30") and (ratio >= 1.5)) or (ratio >= 2)):
                 stocks.append(stock)
                 ratios.append(ratio)
                 currentVols.append(df.iloc[0].Volume)
                 previousVols.append(df.iloc[1].Volume)
                 closes.append(df.iloc[0].Close)
                 lastCloses.append(df.iloc[1].Close)
-                changes.append(round((df.iloc[0].Close - df.iloc[1].Close), 2))
+                changes.append(round((df.iloc[0].Close - df.iloc[1].Close) / df.iloc[1].Close * 100, 2))
     highVolDf = pd.DataFrame.from_dict({
         "Stock": stocks,
         "Ratio": ratios,
@@ -69,38 +75,66 @@ def update(fromDate, toDate):
         "Change": changes
     })
     highVolDf.sort_values("Ratio", ascending=False, inplace=True)
-    print(highVolDf)
     highVolDf.to_csv(data_location + "data/high_volumes.csv", index=False)
 
-def getEpoch(date):
-    vntz = timezone(tz)
-    dateObj = datetime.strptime(date, date_format)
-    loc_dt = vntz.localize(dateObj)
-    return (int)(loc_dt.timestamp())
+def updateStockActiveVolumes(s, startDate, endDate):
+    url = "https://api4.fialda.com/api/services/app/StockInfo/GetTradingChartData?symbol={}&interval=1m&fromTime={}T08:45:00.000&toTime={}T15:00:00.000".format(s, startDate, endDate)
+    rsGetRquest= requests.get(url)
+    tradingData = rsGetRquest.json()['result']
+    if (tradingData is None) or (len(tradingData) == 0):
+        return []
+    df = pd.DataFrame(tradingData)[['tradingTime', 'buyVolRatio', 'buyVol', 'sellVol']]
+    df.tradingTime = df.tradingTime.str[:10]
+    vol  = df.groupby(['tradingTime']).agg('sum')[['buyVol', 'sellVol']]
+    volDict = [{"Date": startDate, "BuyVol": int(vol.buyVol[0]), "SellVol": int(vol.sellVol[0])}]
+    df = pd.DataFrame(volDict)
+    df['BuyVolRatio'] = int(round(df.BuyVol / (df.BuyVol + df.SellVol) * 100, 0))
+    df = df[["Date", "BuyVolRatio", "BuyVol", "SellVol"]]
+    # df.set_index("Date", inplace=True)
+    return df
 
-def getDatetime(epoch):
-    return datetime.fromtimestamp(epoch, tz= pytz.timezone('Asia/Bangkok')).strftime(datetime_format)
+def updateActiveVolumes():
+    stocks = getStocks(os.getenv('all_stocks'))
+    volList = []
+    date = getLastTradingDay()
+    print("Extracting ratios on {}".format(date))
+    # stocks = ["AAA"]
+    for s in stocks:
+        df = updateStockActiveVolumes(s, date, date)
+        if len(df) > 0:
+            # currentDf = pd.read_csv("data/active/{}.csv".format(s), index_col="Date")
+            try:
+                currentDf = pd.read_csv(data_location + "data/active/{}.csv".format(s))
+                currentDf = currentDf[currentDf.Date != df.Date[0]]
+                df = df.append(currentDf)
+                df.to_csv(data_location + "data/active/{}.csv".format(s), index=None)
+            except:
+                logger.error("Error when updating ratio for {}".format(s))
 
-def getDates():
-    if datetime.now().weekday() < 5:
-        today = datetime.now().strftime(date_format)
-        yesterday = (datetime.now() + relativedelta(days=-2)).strftime(date_format)
-        return (yesterday, today)
-    else:
-        friday = (datetime.now() + relativedelta(weekday=FR(-1))).strftime(date_format)
-        thursday = (datetime.now() + relativedelta(weekday=TH(-1))).strftime(date_format)
-        return (thursday, friday)
+def updateStockIntraday(date, stock):
+    URL = "https://api4.fialda.com/api/services/app/Stock/GetIntraday?symbol={}".format(stock)
+    rsGetRquest= requests.get(URL)
+    tradingData = rsGetRquest.json()['result']
+    if len(tradingData) == 0:
+        return {}
+    df = pd.DataFrame(tradingData)
+    df = df[df.side != 'BS']
+    df = df[["tradingTime","volume","price","side"]]
+    df.to_csv(data_location + "data/intraday/{}/{}.csv".format(date, stock), index=None)
+
+def updateIntradays():
+    print("Update intradays")
+    stocks = getStocks(os.getenv('all_stocks'))
+    date = getLastTradingDay()
+    try:
+        os.mkdir(data_location + "data/intraday/{}".format(date)) 
+    except:
+        logger.info("Folder {} existed".format(date))
+    for stock in stocks:
+        updateStockIntraday(date, stock)
 
 if __name__ == "__main__":
-    # (fromDate, toDate) = getDates()
-    # update(fromDate, toDate)
-
-    # Current time in UTC
-    now_utc = datetime.now(timezone(tz))
-    print(datetime.now())
-    print(now_utc.strftime(datetime_format))
-    print(now_utc.weekday())
-
-    # Convert to Asia/Kolkata time zone
-    now_asia = now_utc.astimezone(timezone('Asia/Kolkata'))
-    print(now_asia.strftime(datetime_format))
+    (fromDate, toDate) = getDates()
+    updatePriceAndVolume(fromDate, toDate)
+    updateActiveVolumes()
+    updateIntradays()

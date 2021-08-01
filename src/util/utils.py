@@ -17,8 +17,20 @@ logger = logging.getLogger()
 from dotenv import load_dotenv
 load_dotenv(dotenv_path='stock.env')
 
+tz = os.getenv("timezone")
+date_format = os.getenv("date_format")
+datetime_format = os.getenv("datetime_format")
+
 DATE_FORMAT = "%Y-%m-%d"
 data_location = os.getenv("data")
+
+def getMAVolume(df):
+    df.sort_values(['Date'], inplace=True)
+    df['MA'] = df.Volume.rolling(window=20).mean()
+    df.sort_values(['Date'], ascending=False, inplace=True)
+    maVolume = df.MA.iloc[0]
+    df.drop('MA', axis=1, inplace=True)
+    return maVolume
 
 def isSideway(stock, dataLocation):
     df = pd.read_csv("{}{}.csv".format(data_location + os.getenv(dataLocation), stock), parse_dates=['Date'], index_col=['Date'])
@@ -31,40 +43,41 @@ def isSideway(stock, dataLocation):
     return sideway
 
 def isCafefNotUpdated():
-    now = datetime.now()
+    now = datetime.now(timezone(tz))
     currentTime = str(now.strftime("%H:%M"))
     return (now.weekday() < 5) and (currentTime > "09:15") and (currentTime < "20:30")
 
 def isTradingTime():
-    now = datetime.now()
+    now = datetime.now(timezone(tz))
     currentTime = str(now.strftime("%H:%M"))
     return (now.weekday() < 5) and (currentTime > "09:15") and (currentTime < "15:00")
 
 def isATO():
-    now = datetime.now()
+    now = datetime.now(timezone(tz))
     currentTime = str(now.strftime("%H:%M"))
     return (now.weekday() < 5) and (currentTime > "09:00") and (currentTime < "09:15")
 
 def isATC():
-    now = datetime.now()
+    now = datetime.now(timezone(tz))
     currentTime = str(now.strftime("%H:%M"))
     return (now.weekday() < 5) and (currentTime > "14:30") and (currentTime < "14:45")
 
 def getLastTradingDay():
-    if datetime.now().weekday() < 5:
+    if datetime.now(timezone(tz)).weekday() < 5:
         currentTime = getCurrentTime()
-        if (currentTime > "00:00") and (currentTime < "02:00"):
-            return (datetime.now() + relativedelta(days=-1)).strftime(DATE_FORMAT)
+        if (currentTime > "00:00") and (currentTime < "09:00"):
+            return (datetime.now(timezone(tz)) + relativedelta(days=-1)).strftime(DATE_FORMAT)
         else:
-            return datetime.now().strftime(DATE_FORMAT)
+            return datetime.now(timezone(tz)
+    ).strftime(DATE_FORMAT)
     else:
         return getLastFriday().strftime(DATE_FORMAT)
 
 def getLastFriday():
-    return datetime.now() + relativedelta(weekday=FR(-1))
+    return datetime.now(timezone(tz)) + relativedelta(weekday=FR(-1))
 
 def getCurrentTime():
-    now = datetime.now()
+    now = datetime.now(timezone(tz))
     return str(now.strftime("%H:%M"))
 
 def getStocks(stockFile):
@@ -77,7 +90,7 @@ def getLastCashflow():
     return latest_file
 
 def sendEmail(subject, text, style):
-    now = datetime.now()
+    now = datetime.now(timezone(tz))
     current_time = now.strftime("%Y-%m-%d %H-%M")
     try:
         subject = "{} - {}".format(subject, current_time)
@@ -117,3 +130,23 @@ def html_style_basic(df,index=True):
                 x[index] = x[index].replace('<tr>','<tr style="background-color: #f2f2f2;" bgcolor="#f2f2f2">')
         index += 1
     return ' '.join(x)
+
+
+def getEpoch(date):
+    vntz = timezone(tz)
+    dateObj = datetime.strptime(date, date_format)
+    loc_dt = vntz.localize(dateObj)
+    return (int)(loc_dt.timestamp())
+
+def getDatetime(epoch):
+    return datetime.fromtimestamp(epoch, tz= timezone('Asia/Bangkok')).strftime(datetime_format)
+
+def getDates():
+    if datetime.now().weekday() < 5:
+        today = datetime.now().strftime(date_format)
+        yesterday = (datetime.now() + relativedelta(days=-2)).strftime(date_format)
+        return (yesterday, today)
+    else:
+        friday = (datetime.now() + relativedelta(weekday=FR(-1))).strftime(date_format)
+        thursday = (datetime.now() + relativedelta(weekday=TH(-1))).strftime(date_format)
+        return (thursday, friday)

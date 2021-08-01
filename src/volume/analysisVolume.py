@@ -24,76 +24,6 @@ DATE_FORMAT = "%Y-%m-%d"
 today = datetime.now().strftime(DATE_FORMAT)
 data_location = os.getenv("data")
 
-def extractRatio(s, startDate, endDate):
-    url = "https://api4.fialda.com/api/services/app/StockInfo/GetTradingChartData?symbol={}&interval=1d&fromTime={}T08:45:00.000&toTime={}T15:00:00.000".format(s, startDate, endDate)
-    rsGetRquest= requests.get(url)
-    tradingData = rsGetRquest.json()['result']
-    if (tradingData is None) or (len(tradingData) == 0):
-        return []
-    df = pd.DataFrame(tradingData)[['tradingTime', 'buyVolRatio', 'buyVol', 'sellVol']]
-    df.tradingTime = df.tradingTime.str[:10]
-    df.buyVolRatio = df.buyVolRatio * 100
-    df.rename(columns={"tradingTime": "Date", 'buyVolRatio': 'BuyVolRatio', "buyVol": "BuyVol", "sellVol": "SellVol"}, inplace=True)
-    df[["BuyVolRatio", "BuyVol", "SellVol"]] = df[["BuyVolRatio", "BuyVol", "SellVol"]].fillna(0.0).astype(int)
-    df.set_index("Date", inplace=True)
-    print(s, len(df))
-    return df
-
-def extractRealtimeRatio(s, startDate, endDate):
-    url = "https://api4.fialda.com/api/services/app/StockInfo/GetTradingChartData?symbol={}&interval=1m&fromTime={}T08:45:00.000&toTime={}T15:00:00.000".format(s, startDate, endDate)
-    rsGetRquest= requests.get(url)
-    tradingData = rsGetRquest.json()['result']
-    if (tradingData is None) or (len(tradingData) == 0):
-        return []
-    df = pd.DataFrame(tradingData)[['tradingTime', 'buyVolRatio', 'buyVol', 'sellVol']]
-    df.tradingTime = df.tradingTime.str[:10]
-    vol  = df.groupby(['tradingTime']).agg('sum')[['buyVol', 'sellVol']]
-    volDict = [{"Date": startDate, "BuyVol": int(vol.buyVol[0]), "SellVol": int(vol.sellVol[0])}]
-    df = pd.DataFrame(volDict)
-    df['BuyVolRatio'] = int(round(df.BuyVol / (df.BuyVol + df.SellVol) * 100, 0))
-    df = df[["Date", "BuyVolRatio", "BuyVol", "SellVol"]]
-    # df.set_index("Date", inplace=True)
-    return df
-
-def extractHourlyRatio(s):
-    date = getLastTradingDay()
-    url = "https://api4.fialda.com/api/services/app/StockInfo/GetTradingChartData?symbol={}&interval=1m&fromTime={}T08:45:00.000&toTime={}T15:00:00.000".format(s, date, date)
-    rsGetRquest= requests.get(url)
-    tradingData = rsGetRquest.json()['result']
-    if (tradingData is None) or (len(tradingData) == 0):
-        return []
-    df = pd.DataFrame(tradingData)[['tradingTime', 'buyVolRatio', 'buyVol', 'sellVol']]
-    df.tradingTime = df.tradingTime.str[:13]
-    vol  = df.groupby(['tradingTime']).agg('sum')[['buyVol', 'sellVol']]
-    print(vol)
-
-def extractRatios():
-    if datetime.now().weekday() >= 5:
-        return
-    stocks = getStocks(os.getenv('all_stocks'))
-    volList = []
-    date = getLastTradingDay()
-    print("Extracting ratios on {}".format(date))
-    # stocks = ["AAA"]
-    for s in stocks:
-        df = extractRealtimeRatio(s, date, date)
-        if len(df) > 0:
-            # currentDf = pd.read_csv("data/active/{}.csv".format(s), index_col="Date")
-            try:
-                currentDf = pd.read_csv(data_location + "data/active/{}.csv".format(s))
-                currentDf = currentDf[currentDf.Date != df.Date[0]]
-                df = df.append(currentDf)
-                df.to_csv(data_location + "data/active/{}.csv".format(s), index=None)
-            except:
-                a = 0
-    
-def extractHistoricalRatios(stocks):
-    endDate = datetime.now()
-    startDate = endDate + relativedelta(months=-1)
-    for s in stocks:
-        volList = []
-        df = extractRatio(s, startDate.strftime(DATE_FORMAT), endDate.strftime(DATE_FORMAT))
-        df.to_csv(data_location + "data/active/{}.csv".format(s))
 
 def showRatios(s):
     try:
@@ -184,7 +114,7 @@ def joinTradeVol(reportDf, highList, filename):
 def getIntradays():
     print("Update intradays")
     stocks = getStocks(os.getenv('all_stocks'))
-    date = datetime.now().strftime(DATE_FORMAT)
+    date = getLastTradingDay()
     try:
         os.mkdir(data_location + "data/intraday/{}".format(date)) 
     except:

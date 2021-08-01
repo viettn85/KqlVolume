@@ -189,7 +189,7 @@ def sendCategories():
 
 if __name__ == '__main__':
     data_market = data_location + os.getenv('data_market')
-    updateIntraday(data_market)
+    # updateIntraday(data_market)
     filterStockByValues()
     categorizeStocks()
     sendCategories()
