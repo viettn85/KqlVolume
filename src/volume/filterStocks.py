@@ -1,5 +1,4 @@
 import sys
-sys.path.append('src/crawler')
 sys.path.append('src/util')
 
 from dotenv import load_dotenv
@@ -15,8 +14,6 @@ import pandas_ta as ta
 from stockstats import StockDataFrame
 from utils import *
 from analysisVolume import *
-from dailyCrawler import *
-from ta.trend import ADXIndicator
 
 
 
@@ -36,44 +33,9 @@ def readFile(stock, location):
     df = df.loc[:'2020-01-01']
     return df
 
-
-def getIndicators(df):
-    df.sort_index(inplace=True)
-    # MACD
-    df["exp1"] = df.Close.ewm(span=12, adjust=False).mean()
-    df["exp2"] = df.Close.ewm(span=26, adjust=False).mean()
-    df["MACD"] = df.exp1 - df.exp2
-    df["MACD_SIGNAL"] = df.MACD.ewm(span=9, adjust=False).mean()
-    df['Histogram'] = df.MACD - df.MACD_SIGNAL
-    df.drop(['exp1', 'exp2'], axis=1, inplace=True)
-
-    # RSI
-    df['delta'] = df['Close'].diff()
-    df["up"] = df.delta.clip(lower=0)
-    df["down"] = -1 * df.delta.clip(upper=0)
-    df["ema_up"] = df.up.ewm(com=13, adjust=False).mean()
-    df["ema_down"] = df.down.ewm(com=13, adjust=False).mean()
-    df["rs"] = df.ema_up/df.ema_down
-    df['RSI'] = 100 - (100/(1 + df.rs))
-    df.drop(['delta', 'up', 'down', 'ema_up',
-            'ema_down', 'rs'], axis=1, inplace=True)
-
-    # EMA200
-    df['EMA200'] = df['Close'].ewm(
-        span=200, min_periods=0, adjust=False, ignore_na=False).mean()
-
-    # ADX
-    adxI = ADXIndicator(high=df['High'], low=df['Low'],
-                        close=df['Close'], window=14, fillna=False)
-    df['PDI'] = round(adxI.adx_pos(), 2)
-    df['NDI'] = round(adxI.adx_neg(), 2)
-    df['ADX'] = round(adxI.adx(), 2)
-    df.sort_index(ascending=False, inplace=True)
-
-
 def filterStockByValues():
     stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
-    # stocks = ["VPB"]
+    # stocks = ["BII"]
     highValueStocks = []
     values = []
     dataLocation = 'data_market'
@@ -86,7 +48,7 @@ def filterStockByValues():
         volumeMA20 = df.MA20[0]
         volume = df.Volume[0]
         price = df.Close[0]
-        if (volumeMA20 * price / 1000000 > 6):
+        if (min(volumeMA20, volume) * price / 1000000 > 15):
             highValueStocks.append(stock)
             values.append(round(volume * price / 1000000, 2))
     if len(highValueStocks) > 0:
@@ -94,8 +56,6 @@ def filterStockByValues():
             {"Stock": highValueStocks, "Value": values})
         df.sort_values("Value", ascending=False, inplace=True)
         df.to_csv(data_location + os.getenv("high_value_stocks"), header=None, index=None)
-        # print(df.head(20))
-
 
 def categorizeStocks():
     df = pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)
@@ -176,7 +136,6 @@ def readCategory(stockList):
     except:
         return ""
 
-
 def sendCategories():
     lists = ["ducky_stocks", "potential_stocks", "miss_entry_stocks",
              "soft_zone_stocks", "sideway_stocks", 'bottom_stocks']
@@ -186,10 +145,7 @@ def sendCategories():
         message = message + readCategory(stockList)
     sendEmail("Stock Categories", message, "html")
 
-
 if __name__ == '__main__':
-    data_market = data_location + os.getenv('data_market')
-    # updateIntraday(data_market)
     filterStockByValues()
     categorizeStocks()
     sendCategories()

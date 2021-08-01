@@ -27,6 +27,7 @@ def updatePriceAndVolume(fromDate, toDate):
     startTime = getEpoch(fromDate )
     endTime = getEpoch(toDate)
     all_stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
+    high_value_stocks = list(pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)[0])
     stocks = []
     ratios = []
     currentVols = []
@@ -54,7 +55,7 @@ def updatePriceAndVolume(fromDate, toDate):
         logger.info("Updated {}".format(stock))
         maVolume = getMAVolume(df)
         # if (maVolume >= 100000) and (maVolume <= df.Volume.iloc[0]):
-        if (100000 <= df.Volume.iloc[0]):
+        if (100000 <= df.Volume.iloc[0]) and (stock in high_value_stocks):
             ratio = round(df.iloc[0].Volume/df.iloc[1].Volume, 2)
             # print(ratio)
             if (not math.isinf(ratio)) and (((current_time >= "09:15") and (current_time <= "10:00") and (ratio >= 1)) or ((current_time >= "10:00") and (current_time <= "11:30") and (ratio >= 1.5)) or (ratio >= 2)):
@@ -75,7 +76,7 @@ def updatePriceAndVolume(fromDate, toDate):
         "Change": changes
     })
     highVolDf.sort_values("Ratio", ascending=False, inplace=True)
-    highVolDf.to_csv(data_location + "data/high_volumes.csv", index=False)
+    highVolDf.to_csv(data_location + os.getenv("high_volumes"), index=False)
 
 def updateStockActiveVolumes(s, startDate, endDate):
     url = "https://api4.fialda.com/api/services/app/StockInfo/GetTradingChartData?symbol={}&interval=1m&fromTime={}T08:45:00.000&toTime={}T15:00:00.000".format(s, startDate, endDate)

@@ -9,7 +9,7 @@ import traceback, os, logging, glob
 from pytz import timezone
 from datetime import datetime
 from dateutil.relativedelta import *
-
+from ta.trend import ADXIndicator
 import logging.config
 logging.config.fileConfig(fname='log.conf', disable_existing_loggers=False)
 logger = logging.getLogger()
@@ -150,3 +150,43 @@ def getDates():
         friday = (datetime.now() + relativedelta(weekday=FR(-1))).strftime(date_format)
         thursday = (datetime.now() + relativedelta(weekday=TH(-1))).strftime(date_format)
         return (thursday, friday)
+
+
+def getIndicators(df):
+    df.sort_index(ascending=False, inplace=True)
+    
+    # MACD
+    df["exp1"] = df.Close.ewm(span=12, adjust=False).mean()
+    df["exp2"] = df.Close.ewm(span=26, adjust=False).mean()
+    df["MACD"] = df.exp1 - df.exp2
+    df["MACD_SIGNAL"] = df.MACD.ewm(span=9, adjust=False).mean()
+    df['Histogram'] = df.MACD - df.MACD_SIGNAL
+    df.drop(['exp1', 'exp2'], axis=1, inplace=True)
+
+    # RSI
+    df['delta'] = df['Close'].diff()
+    df["up"] = df.delta.clip(lower=0)
+    df["down"] = -1 * df.delta.clip(upper=0)
+    df["ema_up"] = df.up.ewm(com=13, adjust=False).mean()
+    df["ema_down"] = df.down.ewm(com=13, adjust=False).mean()
+    df["rs"] = df.ema_up/df.ema_down
+    df['RSI'] = 100 - (100/(1 + df.rs))
+    df.drop(['delta', 'up', 'down', 'ema_up',
+            'ema_down', 'rs'], axis=1, inplace=True)
+
+    # EMA200
+    df['EMA200'] = df['Close'].ewm(
+        span=200, min_periods=0, adjust=False, ignore_na=False).mean()
+    # ADX
+    adxI = ADXIndicator(high=df['High'], low=df['Low'],
+                        close=df['Close'], window=14, fillna=False)
+    df['PDI'] = round(adxI.adx_pos(), 2)
+    df['NDI'] = round(adxI.adx_neg(), 2)
+    df['ADX'] = round(adxI.adx(), 2)
+
+    # MA
+    df['MA20'] = df.Close.rolling(window=20).mean()
+    df['MA50'] = df.Close.rolling(window=50).mean()
+    df['MA200'] = df.Close.rolling(window=200).mean()
+
+    df.sort_index(ascending=True, inplace=True)

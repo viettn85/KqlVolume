@@ -111,28 +111,6 @@ def joinTradeVol(reportDf, highList, filename):
     finalDf.to_csv(data_location + "data/active/{}.csv".format(filename))
     return html_style_basic(finalDf)
 
-def getIntradays():
-    print("Update intradays")
-    stocks = getStocks(os.getenv('all_stocks'))
-    date = getLastTradingDay()
-    try:
-        os.mkdir(data_location + "data/intraday/{}".format(date)) 
-    except:
-        logger.info("Folder {} existed".format(date))
-    for stock in stocks:
-        getIntraday(date, stock)
-
-def getIntraday(date, stock):
-    URL = "https://api4.fialda.com/api/services/app/Stock/GetIntraday?symbol={}".format(stock)
-    rsGetRquest= requests.get(URL)
-    tradingData = rsGetRquest.json()['result']
-    if len(tradingData) == 0:
-        return {}
-    df = pd.DataFrame(tradingData)
-    df = df[df.side != 'BS']
-    df = df[["tradingTime","volume","price","side"]]
-    df.to_csv(data_location + "data/intraday/{}/{}.csv".format(date, stock), index=None)
-
 def reportHourVolumes(stock):
     date = getLastTradingDay()
     highValueDf = pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)
@@ -149,8 +127,7 @@ def reportHourVolumes(stock):
             sideDict['Hour'] = hour
             tradeCounts.append(sideDict)
             df['Value'] = df.volume * df.price
-            print(df.head())
-            print(df.price.iloc[0], test)
+            # print(df.head())
             if (df.price.iloc[0] <= 30) or (highValueDf.loc[stock].Value <= 300):
                 df = df[df.Value > 500000]
             else:
@@ -327,34 +304,35 @@ def sendCashflowReports():
     message = message +  "<H2>Top SELL Trade Counts:</H2> \n"
     df.sort_values("G", inplace=True)
     message = message + html_style_basic(df.head(10)) + "\n\n"
-
     sendEmail("Cashflow reports", message, "html")
 
+def sendHighVolumes():
+    df = pd.read_csv(data_location + os.getenv("high_volumes"))
+    cashflowDf = pd.read_csv(getLastCashflow())
+    df = pd.merge(df, cashflowDf, on="Stock")
+    activeVolumeDf = pd.DataFrame()
+    for stock in df.Stock:
+        activeDf = pd.read_csv( "{}{}{}.csv".format(data_location, os.getenv("data_active"), stock)).loc[0:0]
+        activeDf.drop('Date', axis=1, inplace=True)
+        activeDf['Stock'] = stock
+        activeVolumeDf = activeVolumeDf.append(activeDf)
+    df = pd.merge(df, activeVolumeDf, on="Stock")
+    df.sort_values(by="Current", ascending=False, inplace=True)
+    message = "<H2>Abnormal High Volumes:</H2> \n"
+    message = message + html_style_basic(df) + "\n\n"
+    sendEmail("High Volumes", message, "html")
+
 def autoScan():
-    getIntradays()
     reportCashflows()
     sendCashflowReports()
-    extractRatios()
     sendEmail("High ratio reports", getHighRatios(), "html")
+    sendHighVolumes()
 
 if __name__ == '__main__':
     if (sys.argv[1] == 'active'):
-        stocks = getStocks(os.getenv('high_value_stocks'))
-        if (len(sys.argv) == 2):
-            print("Crawling")
-            extractHistoricalRatios(stocks)
-        else:
-            if (sys.argv[2] == "update"):
-                extractRatios()
-            elif (sys.argv[2] == "high"):
-                print(getHighRatios())
-            else:
-                showRatios(sys.argv[2])
+        showRatios(sys.argv[2])
     if (sys.argv[1] == 'scan'):
         showActiveVol(sys.argv[2])
-    if (sys.argv[1] == 'intraday'):
-        print("Intraday")
-        getIntradays()
     if (sys.argv[1] == 'sides'):
         reportCashflows()
     if (sys.argv[1] == 'cash'):
@@ -366,6 +344,4 @@ if __name__ == '__main__':
     if (sys.argv[1] == 'auto'):
         autoScan()
     if (sys.argv[1] == 'hour'):
-        # extractHourlyRatio(sys.argv[2])
         reportHourVolumes(sys.argv[2])
-    # if (sys.argv[1] == 'hour'):
