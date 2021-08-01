@@ -63,10 +63,14 @@ def isATC():
     return (now.weekday() < 5) and (currentTime > "14:30") and (currentTime < "14:45")
 
 def getLastTradingDay():
-    if datetime.now(timezone(tz)).weekday() < 5:
+    weekday = datetime.now(timezone(tz)).weekday()
+    if weekday < 5:
         currentTime = getCurrentTime()
         if (currentTime > "00:00") and (currentTime < "09:00"):
-            return (datetime.now(timezone(tz)) + relativedelta(days=-1)).strftime(DATE_FORMAT)
+            if weekday > 0:
+                return (datetime.now(timezone(tz)) + relativedelta(days=-1)).strftime(DATE_FORMAT)
+            else:
+                return getLastFriday().strftime(DATE_FORMAT)
         else:
             return datetime.now(timezone(tz)
     ).strftime(DATE_FORMAT)
