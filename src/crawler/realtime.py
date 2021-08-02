@@ -58,7 +58,6 @@ def updatePriceAndVolume(fromDate, toDate):
             # if (maVolume >= 100000) and (maVolume <= df.Volume.iloc[0]):
             if (len(df) > 0) and (100000 <= df.Volume.iloc[0]) and (stock in high_value_stocks):
                 ratio = round(df.iloc[0].Volume/df.iloc[1].Volume, 2)
-                # print(ratio)
                 if (not math.isinf(ratio)) and (((current_time >= "09:15") and (current_time <= "10:00") and (ratio >= 1)) or ((current_time >= "10:00") and (current_time <= "11:30") and (ratio >= 1.5)) or (ratio >= 2)):
                     stocks.append(stock)
                     ratios.append(ratio)
