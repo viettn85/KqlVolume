@@ -146,7 +146,7 @@ def reportHourVolumes(stock):
         print(finalDf)
     except:
         print("Error to report {} hourly".format(stock))
-        traceback.print_exc()
+        # traceback.print_exc()
     
     
 def reportCashflows():
