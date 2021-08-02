@@ -112,11 +112,11 @@ def joinTradeVol(reportDf, highList, filename):
     return html_style_basic(finalDf)
 
 def reportHourVolumes(stock):
-    date = getLastTradingDay()
-    highValueDf = pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)
-    highValueDf.columns = ['Stock', 'Value']
-    highValueDf.set_index('Stock', inplace=True)
     try: 
+        date = getLastTradingDay()
+        highValueDf = pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)
+        highValueDf.columns = ['Stock', 'Value']
+        highValueDf.set_index('Stock', inplace=True)
         all_df = pd.read_csv(data_location + "data/intraday/{}/{}.csv".format(date, stock), parse_dates=['tradingTime'])
         all_df['Hour'] = all_df.tradingTime.dt.hour
         tradeCounts = []
@@ -145,7 +145,7 @@ def reportHourVolumes(stock):
         finalDf = finalDf[["Hour", "B", "S", "G", "BB", "BS", "BG"]]
         print(finalDf)
     except:
-        print("Error to report {} ".format(stock))
+        print("Error to report {} hourly".format(stock))
         traceback.print_exc()
     
     

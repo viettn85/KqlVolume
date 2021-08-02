@@ -69,10 +69,10 @@ def updatePriceAndVolume(fromDate, toDate):
     highVolDf = pd.DataFrame.from_dict({
         "Stock": stocks,
         "Ratio": ratios,
-        "Current": currentVols,
-        "Previous": previousVols,
-        "Last_Close": lastCloses,
-        "Close": closes,
+        "Volume": currentVols,
+        "YtdVolume": previousVols,
+        "YtdPrice": lastCloses,
+        "Price": closes,
         "Change": changes
     })
     highVolDf.sort_values("Ratio", ascending=False, inplace=True)

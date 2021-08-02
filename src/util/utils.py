@@ -194,4 +194,4 @@ def getIndicators(df):
     df['MA200'] = df.Close.rolling(window=200).mean()
 
     df.sort_index(ascending=True, inplace=True)
-    print(df.head())
+

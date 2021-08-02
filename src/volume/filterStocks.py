@@ -38,7 +38,7 @@ def filterStockByValues():
     # stocks = ["BII"]
     highValueStocks = []
     values = []
-    dataLocation = 'data_market'
+    dataLocation = 'data_realtime'
     for stock in stocks:
         df = pd.read_csv("{}{}.csv".format(data_location + 
             os.getenv(dataLocation), stock), parse_dates=['Date'], index_col=['Date'])
