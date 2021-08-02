@@ -36,36 +36,37 @@ def updatePriceAndVolume(fromDate, toDate):
     closes = []
     changes = []
     current_time = getCurrentTime()
-    # all_stocks = ['AAA']
+    # all_stocks = ['BID']
     for stock in all_stocks: 
         URL = "https://chartdata1.mbs.com.vn/pbRltCharts/chart/history?symbol={}&resolution=D&from={}&to={}".format(stock, startTime, endTime)
         response = requests.get(URL)
         newDf = pd.DataFrame(response.json())
-        newDf['t']=newDf.apply(lambda x: getDatetime(x.t)[0:10] ,axis=1)
-        newDf['Change'] = 0
-        newDf.rename(columns={"t": "Date", "c": "Close", "o": "Open", "h": "High", "l": "Low", "Change": "Change", "v": "Volume"}, inplace=True)
-        newDf = newDf[['Date', 'Close', 'Open', 'High', 'Low', 'Change', 'Volume']]
-        newDf.Volume = newDf.Volume * 10
-        df = pd.read_csv("{}{}.csv".format(data_realtime, stock))
-        # Remove the today data if existed
-        df = df[df.Date != newDf.Date[0]]
-        newDf.Change = round((newDf.Close.iloc[0] - df.Close.iloc[0]) / df.Close.iloc[0] * 100, 2)
-        df = newDf.append(df)
-        df.to_csv("{}{}.csv".format(data_realtime, stock), index=None)
-        logger.info("Updated {}".format(stock))
-        maVolume = getMAVolume(df)
-        # if (maVolume >= 100000) and (maVolume <= df.Volume.iloc[0]):
-        if (100000 <= df.Volume.iloc[0]) and (stock in high_value_stocks):
-            ratio = round(df.iloc[0].Volume/df.iloc[1].Volume, 2)
-            # print(ratio)
-            if (not math.isinf(ratio)) and (((current_time >= "09:15") and (current_time <= "10:00") and (ratio >= 1)) or ((current_time >= "10:00") and (current_time <= "11:30") and (ratio >= 1.5)) or (ratio >= 2)):
-                stocks.append(stock)
-                ratios.append(ratio)
-                currentVols.append(df.iloc[0].Volume)
-                previousVols.append(df.iloc[1].Volume)
-                closes.append(df.iloc[0].Close)
-                lastCloses.append(df.iloc[1].Close)
-                changes.append(round((df.iloc[0].Close - df.iloc[1].Close) / df.iloc[1].Close * 100, 2))
+        if len(newDf) > 0:
+            newDf['t']=newDf.apply(lambda x: getDatetime(x.t)[0:10] ,axis=1)
+            newDf['Change'] = 0
+            newDf.rename(columns={"t": "Date", "c": "Close", "o": "Open", "h": "High", "l": "Low", "Change": "Change", "v": "Volume"}, inplace=True)
+            newDf = newDf[['Date', 'Close', 'Open', 'High', 'Low', 'Change', 'Volume']]
+            newDf.Volume = newDf.Volume * 10
+            df = pd.read_csv("{}{}.csv".format(data_realtime, stock))
+            # Remove the today data if existed
+            df = df[df.Date != newDf.Date[0]]
+            newDf.Change = round((newDf.Close.iloc[0] - df.Close.iloc[0]) / df.Close.iloc[0] * 100, 2)
+            df = newDf.append(df)
+            df.to_csv("{}{}.csv".format(data_realtime, stock), index=None)
+            logger.info("Updated {}".format(stock))
+            maVolume = getMAVolume(df)
+            # if (maVolume >= 100000) and (maVolume <= df.Volume.iloc[0]):
+            if (len(df) > 0) and (100000 <= df.Volume.iloc[0]) and (stock in high_value_stocks):
+                ratio = round(df.iloc[0].Volume/df.iloc[1].Volume, 2)
+                # print(ratio)
+                if (not math.isinf(ratio)) and (((current_time >= "09:15") and (current_time <= "10:00") and (ratio >= 1)) or ((current_time >= "10:00") and (current_time <= "11:30") and (ratio >= 1.5)) or (ratio >= 2)):
+                    stocks.append(stock)
+                    ratios.append(ratio)
+                    currentVols.append(df.iloc[0].Volume)
+                    previousVols.append(df.iloc[1].Volume)
+                    closes.append(df.iloc[0].Close)
+                    lastCloses.append(df.iloc[1].Close)
+                    changes.append(round((df.iloc[0].Close - df.iloc[1].Close) / df.iloc[1].Close * 100, 2))
     highVolDf = pd.DataFrame.from_dict({
         "Stock": stocks,
         "Ratio": ratios,
