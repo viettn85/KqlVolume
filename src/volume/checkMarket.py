@@ -92,6 +92,7 @@ def checkValue():
 
 def checkDuckyPattern(df):
     getIndicators(df)
+    print(df.head())
     criteria = []
     status = []
     criteria.append("Above MA200")

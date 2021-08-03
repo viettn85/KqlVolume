@@ -157,7 +157,7 @@ def getDates():
 
 
 def getIndicators(df):
-    df.sort_index(ascending=True, inplace=True)
+    df.sort_values(by="Date", ascending=True, inplace=True)
     
     # MACD
     df["exp1"] = df.Close.ewm(span=12, adjust=False).mean()
@@ -193,5 +193,5 @@ def getIndicators(df):
     df['MA50'] = df.Close.rolling(window=50).mean()
     df['MA200'] = df.Close.rolling(window=200).mean()
 
-    df.sort_index(ascending=False, inplace=True)
+    df.sort_values(by="Date", ascending=False, inplace=True)
 
