@@ -28,4 +28,7 @@ then
 elif [ $1 == 'report' ] 
 then
     python3 src/volume/analysisVolume.py $2 $3 $4 $5
+elif [ $1 == 'shoot' ] 
+then
+    python3 src/chart/ducky.py $2
 fi

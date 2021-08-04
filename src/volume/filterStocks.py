@@ -70,14 +70,14 @@ def categorizeStocks():
     missedEntry = []
     sideways = []
     bottoms = []
-    dataLocation = 'data_market'
+    dataLocation = 'data_realtime'
     for stock in stocks:
         # print(stock)
         df = pd.read_csv("{}{}.csv".format(data_location + os.getenv(dataLocation), stock), parse_dates=['Date'], index_col=['Date'])
         getIndicators(df)
         # print(df.head())
         # if df.Close[0] > df.EMA200[0]:
-        if (df.Close[0] > df.EMA200[0]) or ((df.EMA200[0] - df.Close[0]) / df.EMA200[0] < 0.02):
+        if (df.Close[0] > df.MA200[0]) or ((df.MA200[0] - df.Close[0]) / df.MA200[0] < 0.02):
             if (df.Histogram[0] > - 0.2) and (df.ADX[0] >= 20):
                 # if ((df.Histogram[1] < 0.05) or (df.Histogram[2] < 0.05) or (df.Histogram[3] < 0.05)) and (df.RSI[0] > 40):
                 if (df.Histogram[0] < 0) and (df.RSI[0] > 45) and (df.RSI[0] > df.RSI[1]):
@@ -94,7 +94,7 @@ def categorizeStocks():
                         uptrends.append(stock)
             else:
                 corrections.append(stock)
-        if abs(df.Close[0] - df.EMA200[0]) < 0.4:
+        if abs(df.Close[0] - df.MA200[0]) < 0.4:
             soft_zones.append(stock)
         price = df.Close[0]
         sideway = True
@@ -106,22 +106,22 @@ def categorizeStocks():
         if (df.ADX[0] >= 16) and (df.PDI[0] >= df.PDI[1]) and (df.NDI[0] <= df.NDI[1]) and (df.ADX[0] > df.ADX[1]) and (df.ADX[1] <= df.ADX[2]):
             bottoms.append(stock)
     if len(uptrends) > 0:
-        pd.DataFrame.from_dict({"Stock": uptrends}).to_csv(data_location +  os.getenv('uptrend_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": uptrends}).to_csv(data_location +  os.getenv('uptrends'), index=None, header=None)
     if len(missedEntry) > 0:
-        pd.DataFrame.from_dict({"Stock": missedEntry}).to_csv(data_location + os.getenv('miss_entry_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": missedEntry}).to_csv(data_location + os.getenv('miss_entry'), index=None, header=None)
     if len(corrections) > 0:
-        pd.DataFrame.from_dict({"Stock": corrections}).to_csv(data_location + os.getenv('correction_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": corrections}).to_csv(data_location + os.getenv('corrections'), index=None, header=None)
     if len(soft_zones) > 0:
-        pd.DataFrame.from_dict({"Stock": soft_zones}).to_csv(data_location + os.getenv('soft_zone_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": soft_zones}).to_csv(data_location + os.getenv('soft_zones'), index=None, header=None)
     if len(ducky) > 0:
-        pd.DataFrame.from_dict({"Stock": ducky}).to_csv(data_location + os.getenv('ducky_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": ducky}).to_csv(data_location + os.getenv('ducky'), index=None, header=None)
     if len(sideways) > 0:
-        pd.DataFrame.from_dict({"Stock": sideways}).to_csv(data_location + os.getenv('sideway_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": sideways}).to_csv(data_location + os.getenv('sideway'), index=None, header=None)
     if len(bottoms) > 0:
-        pd.DataFrame.from_dict({"Stock": bottoms}).to_csv(data_location + os.getenv('bottom_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": bottoms}).to_csv(data_location + os.getenv('bottom'), index=None, header=None)
     if len(missedEntry) > 0 and len(soft_zones) > 0:
         potentialStocks = np.intersect1d(missedEntry, soft_zones)
-        pd.DataFrame.from_dict({"Stock": potentialStocks}).to_csv(data_location + os.getenv('potential_stocks'), index=None, header=None)
+        pd.DataFrame.from_dict({"Stock": potentialStocks}).to_csv(data_location + os.getenv('potential'), index=None, header=None)
 
 
 def readCategory(stockList):
@@ -137,8 +137,8 @@ def readCategory(stockList):
         return ""
 
 def sendCategories():
-    lists = ["ducky_stocks", "potential_stocks", "miss_entry_stocks",
-             "soft_zone_stocks", "sideway_stocks", 'bottom_stocks']
+    lists = ["ducky", "potential", "miss_entry",
+             "soft_zone", "sideway", 'bottom']
     message = ""
     for stockList in lists:
         # print(stockList)

@@ -92,7 +92,7 @@ def checkValue():
 
 def checkDuckyPattern(df):
     getIndicators(df)
-    print(df.head())
+    # print(df.head())
     criteria = []
     status = []
     criteria.append("Above MA200")
@@ -153,10 +153,10 @@ def scanDucky():
             candidateList.append(stock)
     if len(duckyList) > 0:
         print("There are {} stocks on the Ducky pattern".format(len(duckyList)))
-        print(duckyList)
+        print(",".join(duckyList))
     if len(candidateList) > 0:
         print("There are {} candidates of the Ducky pattern".format(len(candidateList)))
-        print(candidateList)
+        print(",".join(candidateList))
 
 def checkStock(stock):
     data = data_location + os.getenv("data_realtime")

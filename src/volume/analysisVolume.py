@@ -45,7 +45,7 @@ def getHighRatios():
     portfolio = []
     target = []
     message = ""
-    dataLocation = 'data_market'
+    dataLocation = 'data_realtime'
     for s in stocks:
         try:
             df = pd.read_csv(data_location + "data/active/{}.csv".format(s), index_col = "Date")
