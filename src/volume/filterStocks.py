@@ -20,7 +20,6 @@ from analysisVolume import *
 load_dotenv(dotenv_path='stock.env')
 
 results = 'data/market/results/'
-filtered = 'data/market/intraday/'
 data_location = os.getenv('data')
 
 
@@ -149,5 +148,5 @@ if __name__ == '__main__':
     filterStockByValues()
     categorizeStocks()
     sendCategories()
-    sendActiveVolList("ducky")
-    sendActiveVolList("potential")
+    # sendActiveVolList("ducky")
+    # sendActiveVolList("potential")

@@ -195,5 +195,5 @@ def updateIntradays():
 if __name__ == "__main__":
     (fromDate, toDate) = getDates()
     updatePriceAndVolume()
-    updateActiveVolumes()
-    updateIntradays()
+    # updateActiveVolumes()
+    # updateIntradays()

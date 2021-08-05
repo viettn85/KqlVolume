@@ -329,19 +329,19 @@ def autoScan():
     sendHighVolumes()
 
 if __name__ == '__main__':
-    if (sys.argv[1] == 'active'):
-        showRatios(sys.argv[2])
-    if (sys.argv[1] == 'scan'):
-        showActiveVol(sys.argv[2])
-    if (sys.argv[1] == 'sides'):
-        reportCashflows()
-    if (sys.argv[1] == 'cash'):
-        stockList = ""
-        if (len(sys.argv) == 4):
-            stockList = sys.argv[3]
-        print(stockList)
-        analyzeCashflow(sys.argv[2], stockList)
+    # if (sys.argv[1] == 'active'):
+    #     showRatios(sys.argv[2])
+    # if (sys.argv[1] == 'scan'):
+    #     showActiveVol(sys.argv[2])
+    # if (sys.argv[1] == 'sides'):
+    #     reportCashflows()
+    # if (sys.argv[1] == 'cash'):
+    #     stockList = ""
+    #     if (len(sys.argv) == 4):
+    #         stockList = sys.argv[3]
+    #     print(stockList)
+    #     analyzeCashflow(sys.argv[2], stockList)
     if (sys.argv[1] == 'auto'):
         autoScan()
-    if (sys.argv[1] == 'hour'):
-        reportHourVolumes(sys.argv[2])
+    # if (sys.argv[1] == 'hour'):
+    #     reportHourVolumes(sys.argv[2])

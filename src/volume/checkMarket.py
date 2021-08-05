@@ -176,22 +176,22 @@ def checkStock(stock):
         print(df[["Date", "Value", "Close", "Change"]].head())
     else:
         print("{} is NOT a high value stock".format(stock))
-    print("\nACTIVE VOLS:")
-    print(pd.read_csv("{}{}.csv".format(data_location + os.getenv("data_active"), stock), index_col = "Date").head(10))
-    print("\nTRADE COUNTS:")
-    today = datetime.now()
-    cashflowDf = pd.DataFrame()
-    for i in range(0, 14):
-        date = (today + relativedelta(days=-i)).strftime(DATE_FORMAT)
-        try:
-            df = pd.read_csv("{}{}.csv".format(data_location + os.getenv("data_cashflow"), date))
-            df['Date'] = date
-            cashflowDf = cashflowDf.append(df[df.Stock == stock])
-        except:
-            dump = 0
-    print(cashflowDf[['Date', 'B', 'S', 'G', 'BB', 'BS', 'BG']])
-    print("\nHourly Cashflow Report:")
-    reportHourVolumes(stock)
+    # print("\nACTIVE VOLS:")
+    # print(pd.read_csv("{}{}.csv".format(data_location + os.getenv("data_active"), stock), index_col = "Date").head(10))
+    # print("\nTRADE COUNTS:")
+    # today = datetime.now()
+    # cashflowDf = pd.DataFrame()
+    # for i in range(0, 14):
+    #     date = (today + relativedelta(days=-i)).strftime(DATE_FORMAT)
+    #     try:
+    #         df = pd.read_csv("{}{}.csv".format(data_location + os.getenv("data_cashflow"), date))
+    #         df['Date'] = date
+    #         cashflowDf = cashflowDf.append(df[df.Stock == stock])
+    #     except:
+    #         dump = 0
+    # print(cashflowDf[['Date', 'B', 'S', 'G', 'BB', 'BS', 'BG']])
+    # print("\nHourly Cashflow Report:")
+    # reportHourVolumes(stock)
 
 if __name__ == '__main__':
     if sys.argv[1] == "ducky":
@@ -200,10 +200,10 @@ if __name__ == '__main__':
         checkIndustries()
     if sys.argv[1] == "industry":
         checkIndustry(sys.argv[2])
-    if sys.argv[1] == "active":
-        checkActiveVol(sys.argv[2])
-    if sys.argv[1] == "cashflow":
-        checkCashflow(sys.argv[2])
+    # if sys.argv[1] == "active":
+    #     checkActiveVol(sys.argv[2])
+    # if sys.argv[1] == "cashflow":
+    #     checkCashflow(sys.argv[2])
     if sys.argv[1] == "value":
         checkValue()
     if (len(sys.argv[1]) == 3) and ((sys.argv[1] != 'ato' and (sys.argv[1] != 'atc'))):

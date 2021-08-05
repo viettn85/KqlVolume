@@ -62,3 +62,13 @@ do
   echo "$line"
   cp "${image_location}daily/${line}.png" "${image_location}${stockList}"
 done < "$input"
+
+stockList="portfolio"
+echo stockList
+rm -f "${image_location}${stockList}/*.png"
+input="${stock_location}${stockList}.csv"
+while IFS= read -r line
+do
+  echo "$line"
+  cp "${image_location}daily/${line}.png" "${image_location}${stockList}"
+done < "$input"
