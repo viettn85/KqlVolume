@@ -153,8 +153,8 @@ def scan(stocks, bigTimeframe, smallTimeframe):
         getIndicators(df)
         # getIndicators(subDf)
         patterns = findPatterns(df, rowIndex, [])
-        if len(patterns) > 0:
-            print(stock, patterns)
+        # if len(patterns) > 0:
+        #     print(stock, patterns)
         if "UptrendCorrection" in patterns:
             uptrendCorrections.append(stock)
         if "DowntrendCorrection" in patterns:
