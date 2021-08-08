@@ -80,13 +80,20 @@ def isDowntrendCorrection(df, i):
     try:
         row = df.loc[i]
         prow = df.loc[i+1]
-        srow = df.loc[i+9]
-        if (row.Close > row.MA20) or (row.MA20 > row.MA50) or (row.MA50 > row.MA200) or (row.RSI > 52):
-            # position['DowntrendCorrection'] = False
+        srow = df.loc[i+15]
+        maxMA = max(row.MA20, row.MA50)
+        minMA = min(row.MA20, row.MA50)
+        if (row.Close > minMA) or (maxMA > row.MA200) or (row.RSI > 52):
             return False
-        maxMACD = min(list(df.loc[i:i+10].MACD))
-        maxStoch = min(list(df.loc[i:i+10]['%K']))
-        if (((maxStoch > srow['%K']) and (maxStoch > 75) and (maxStoch > row['%K'])) or ((maxMACD > srow.MACD) and (maxMACD > row.MACD))) and (df.loc[i+1].Close > df.loc[i+1].MA20):
+        maxMACD = max(list(df.loc[i:i+15].MACD_SIGNAL))
+        maxStoch = max(list(df.loc[i:i+15]['%D']))
+        # if row.Date == '2020-02-25':
+        #     print(row)
+        #     print(maxStoch, srow['%D'], maxMACD, srow.MACD_SIGNAL)
+        #     print(((maxStoch > srow['%D']) and (maxStoch > 75) and (maxStoch > row['%D'])))
+            # print(list(df.loc[i:i+10]['MACD_SIGNAL']))
+            # print(((maxMACD > srow.MACD_SIGNAL) and (maxMACD > row.MACD_SIGNAL)))
+        if (((maxStoch > srow['%D']) and (maxStoch > 75) and (maxStoch > row['%D'])) or ((maxMACD > srow.MACD_SIGNAL) and (maxMACD > row.MACD_SIGNAL))) and (prow.Close > min(prow.MA20, prow.MA50)):
             return True
         return False
     except:
