@@ -15,7 +15,7 @@ logging.config.fileConfig(fname='log.conf', disable_existing_loggers=False)
 logger = logging.getLogger()
 
 from dotenv import load_dotenv
-load_dotenv(dotenv_path='stock.env')
+load_dotenv(dotenv_path='future.env')
 
 tz = os.getenv("timezone")
 date_format = os.getenv("date_format")
@@ -51,6 +51,10 @@ def isTradingTime():
     now = datetime.now(timezone(tz))
     currentTime = str(now.strftime("%H:%M"))
     return (now.weekday() < 5) and (currentTime > "09:15") and (currentTime < "15:00")
+
+def isWeekday():
+    now = datetime.now(timezone(tz))
+    return (now.weekday() < 5)
 
 def isATO():
     now = datetime.now(timezone(tz))
@@ -89,7 +93,7 @@ def getStocks(stockFile):
 
 def getLastCashflow():
     list_of_files = glob.glob(data_location + os.getenv("data_cashflow") + "*") # * means all if need specific format then *.csv
-    latest_file = max(list_of_files, key=os.path.getmtime)
+    latest_file = maxkgyy (list_of_files, key=os.path.getmtime)
     print(latest_file)
     return latest_file
 
@@ -142,8 +146,26 @@ def getEpoch(date):
     loc_dt = vntz.localize(dateObj)
     return (int)(loc_dt.timestamp())
 
-def getDatetime(epoch):
+def getTransactionDatetime(epoch):
+    return datetime.fromtimestamp(epoch, tz= timezone('GMT')).strftime(datetime_format)
+
+def getIntradayDatetime(epoch):
     return datetime.fromtimestamp(epoch, tz= timezone('Asia/Bangkok')).strftime(datetime_format)
+
+def getHourAndMinute():
+    now = datetime.now(timezone(tz))
+    return (int(now.strftime("%H")), int(now.strftime("%M")))
+
+def getFromDate(resolution):
+    now = datetime.now(timezone(tz))
+    if resolution == "D":
+        return (now + relativedelta(months=-15)).strftime(date_format)
+    if resolution == "60":
+        return (now + relativedelta(months=-6)).strftime(date_format)
+    if resolution == "15":
+        return (now + relativedelta(months=-2)).strftime(date_format)
+    if resolution == "5":
+        return (now + relativedelta(months=-2)).strftime(date_format)
 
 def getDates():
     if datetime.now().weekday() < 5:
@@ -193,5 +215,72 @@ def getIndicators(df):
     df['MA50'] = df.Close.rolling(window=50).mean()
     df['MA200'] = df.Close.rolling(window=200).mean()
 
+    # Stoch
+    df['14-high'] = df['High'].rolling(14).max()
+    df['14-low'] = df['Low'].rolling(14).min()
+    df['%K'] = (df['Close'] - df['14-low'])*100/(df['14-high'] - df['14-low'])
+    df['%D'] = df['%K'].rolling(3).mean()
+    df.drop(['14-high', '14-low'], axis=1, inplace=True)
+
     df.sort_values(by="Date", ascending=False, inplace=True)
 
+def isDucky(df, i):
+    row = df.loc[i]
+    count = 0
+    criteria = []
+    values = []
+    criteria.append("MA200")
+    value = False
+    if row.Close >= row.MA200:
+        count = count + 1
+        value = True
+    values.append(value)
+    value = False
+    criteria.append("MA50")
+    if row.Close >= row.MA50:
+        count = count + 1
+        value = True
+    values.append(value)
+    value = False
+    criteria.append("MA20")
+    if row.Close >= row.MA20:
+        count = count + 1
+        value = True
+    values.append(value)
+    value = False
+    criteria.append("RSI")
+    if row.RSI >= 50:
+        count = count + 1
+        value = True
+    values.append(value)
+    value = False
+    criteria.append("MACD")
+    if row.MACD >= 0:
+        count = count + 1
+        value = True
+    values.append(value)
+    value = False
+    criteria.append("Cross MACD")
+    if row.Histogram >= 0:
+        count = count + 1
+        value = True
+    values.append(value)
+    value = False
+    criteria.append("ADX")
+    if row.ADX >= 20:
+        count = count + 1
+        value = True
+    values.append(value)
+    value = False
+    criteria.append("Cross ADX")
+    if row.PDI >= row.NDI:
+        count = count + 1
+        value = True
+    values.append(value)
+    df = pd.DataFrame({"Criteria": criteria, 'Value': values})
+    if count == 8:
+        return ("Ducky", df)
+    elif count >= 6:
+        return ("Candidate", df)
+    else:
+        return ("None", df)

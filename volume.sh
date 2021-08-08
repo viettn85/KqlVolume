@@ -31,4 +31,7 @@ then
 elif [ $1 == 'shoot' ] 
 then
     python3 src/chart/ducky.py $2
+elif [ $1 == 'market' ] 
+then
+    python3 src/scan/ducky.py $2
 fi
