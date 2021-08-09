@@ -158,33 +158,46 @@ def reportCashflows():
     print("Report cash flows on {}".format(date))
     tradeCounts = []
     bigTradeCounts = []
-    # stocks = ['AAA', 'TCH', 'HBC', 'DRC', 'MWG']
+    # stocks = ['AAA']
     for stock in stocks:
         try: 
             df = pd.read_csv(data_location + "data/intraday/{}/{}.csv".format(date, stock))
-            sideDict  = df.groupby(['side']).agg('count')['price'].to_dict()
+            sideDict  = df.groupby(['Side']).agg('count')['Price'].to_dict()
             sideDict['Stock'] = stock
+            # print(sideDict)
             tradeCounts.append(sideDict)
-            df['Value'] = df.volume * df.price
-            if (highValueDf.loc[stock].Value <= 300) or (df.price[0] <= 30):
+            df['Value'] = df.Volume * df.Price
+            if (highValueDf.loc[stock].Value <= 300) or (df.Price[0] <= 30):
                 df = df[df.Value > 500000]
             else:
                 df = df[df.Value > 1000000]
-            sideDict  = df.groupby(['side']).agg('count')['price'].to_dict()
-            sideDict['Stock'] = stock
-            bigTradeCounts.append(sideDict)
+            if len(df) > 0:
+                sideDict  = df.groupby(['Side']).agg('count')['Price'].to_dict()
+                sideDict['Stock'] = stock
+                bigTradeCounts.append(sideDict)
+            else:
+                bigTradeCounts.append({'B': 0, 'S': 0, 'Stock': stock})
         except:
             print("Error to report {} ".format(stock))
             # traceback.print_exc()
     tradeCounts = pd.DataFrame(tradeCounts)
-    bigTradeCounts = pd.DataFrame(bigTradeCounts)
-    bigTradeCounts.rename(columns={"B": "BB", "S": "BS"}, inplace=True)
-    finalDf = pd.merge(tradeCounts, bigTradeCounts, on="Stock")
-    finalDf.fillna(0, inplace=True)
-    finalDf["G"] = finalDf.B - finalDf.S
-    finalDf["BG"] = finalDf.BB - finalDf.BS
-    finalDf = finalDf[["Stock", "B", "S", "G", "BB", "BS", "BG"]]
-    finalDf.to_csv(data_location + "data/cashflow/{}.csv".format(date), index=None)
+
+    if len(tradeCounts) > 0:
+        tradeCounts["G"] = tradeCounts.B - tradeCounts.S
+        bigTradeCounts = pd.DataFrame(bigTradeCounts)
+        # print(tradeCounts.head())
+        if len(bigTradeCounts) > 0:
+            bigTradeCounts.rename(columns={"B": "BB", "S": "BS"}, inplace=True)
+            # print(bigTradeCounts)
+            finalDf = pd.merge(tradeCounts, bigTradeCounts, on="Stock")
+            finalDf["BG"] = finalDf.BB - finalDf.BS
+            finalDf = finalDf[["Stock", "B", "S", "G", "BB", "BS", "BG"]]
+        else:
+            finalDf = tradeCounts
+            finalDf = finalDf[["Stock", "B", "S", "G"]]
+        finalDf.fillna(0, inplace=True)
+        # print(finalDf)
+        finalDf.to_csv(data_location + "data/cashflow/{}.csv".format(date), index=None)
     # print(finalDf)
 
 def analyzeActiveVol(stockList):
@@ -324,9 +337,9 @@ def sendHighVolumes():
 
 def autoScan():
     reportCashflows()
-    sendCashflowReports()
-    sendEmail("High ratio reports", getHighRatios(), "html")
-    sendHighVolumes()
+    # sendCashflowReports()
+    # sendEmail("High ratio reports", getHighRatios(), "html")
+    # sendHighVolumes()
 
 if __name__ == '__main__':
     # if (sys.argv[1] == 'active'):

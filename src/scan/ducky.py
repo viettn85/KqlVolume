@@ -140,16 +140,17 @@ def findPatterns(df, i, subDf):
     #     patterns.append("ShouldExitShort")
     return patterns
 
-def scan(stocks, bigTimeframe, smallTimeframe):
+def scan(stocks, rowIndex, bigTimeframe, smallTimeframe):
     message = ""
-    rowIndex = 0
     uptrendCorrections = []
     downtrendCorrections = []
     softzones = []
+    date = ""
     for stock in stocks:
         # logger.info("Scanning {}".format(stock))
         df = pd.read_csv("{}{}.csv".format(data_realtime, stock))
         # subDf = pd.read_csv("{}{}_{}.csv".format(intraday, smallTimeframe, stock))
+        date = df.iloc[rowIndex].Date
         getIndicators(df)
         # getIndicators(subDf)
         patterns = findPatterns(df, rowIndex, [])
@@ -162,6 +163,7 @@ def scan(stocks, bigTimeframe, smallTimeframe):
         if "Softzone" in patterns:
             softzones.append(stock)
     # return (uptrendCorrections, downtrendCorrections, softzones)
+    print("Scan patterns of the market on {}".format(date))
     if len(uptrendCorrections) > 0:
         print("Uptrend Corrections: {}".format(','.join(uptrendCorrections)))
     if len(downtrendCorrections) > 0:
@@ -183,13 +185,16 @@ def scanStocks():
         currentTime = getCurrentTime()
         if ((currentTime >= '09:15') and (currentTime <= '11:30')) or ((currentTime >= '13:00') and (currentTime <= '14:50')):
             stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
-            scan(stocks, 'D', '60')
+            scan(stocks, 0, 'D', '60')
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
         # stocks = ['VPH']
-        scan(stocks, 'D', '60')
-
+        scan(stocks, 0, 'D', '60')
     if (len(sys.argv) == 2) and (len(sys.argv[1]) == 3):
         checkStock(sys.argv[1])
+    if (len(sys.argv) == 2) and (sys.argv[1] == 'history'):
+        stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
+        for i in range(1, 4):
+            scan(stocks, i, 'D', '60')

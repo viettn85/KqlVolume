@@ -15,7 +15,7 @@ logging.config.fileConfig(fname='log.conf', disable_existing_loggers=False)
 logger = logging.getLogger()
 
 from dotenv import load_dotenv
-load_dotenv(dotenv_path='future.env')
+load_dotenv(dotenv_path='stock.env')
 
 tz = os.getenv("timezone")
 date_format = os.getenv("date_format")
