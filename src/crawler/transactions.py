@@ -72,7 +72,7 @@ if __name__ == "__main__":
     if sys.argv[1] == 'history':
         updateTransactions()
     if sys.argv[1] == 'realtime':
-        schedule.every(15).seconds.do(updateRealtimeTransactions)
+        schedule.every(60).seconds.do(updateRealtimeTransactions)
         while True:
             schedule.run_pending()
             time.sleep(1)
