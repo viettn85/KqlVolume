@@ -44,7 +44,7 @@ def updatePriceAndVolume():
         response = requests.get(URL)
         # print(response.json())
         newDf = pd.DataFrame(response.json())
-        newDf['t']=newDf.apply(lambda x: getDatetime(x.t)[0:10] ,axis=1)
+        newDf['t']=newDf.apply(lambda x: getIntradayDatetime(x.t)[0:10] ,axis=1)
         newDf['Change'] = 0
         newDf.rename(columns={"t": "Date", "c": "Close", "o": "Open", "h": "High", "l": "Low", "Change": "Change", "v": "Volume"}, inplace=True)
         newDf = newDf[['Date', 'Close', 'Open', 'High', 'Low', 'Change', 'Volume']]
@@ -100,7 +100,7 @@ def updatePriceAndVolume_Bkp(fromDate, toDate):
         response = requests.get(URL)
         newDf = pd.DataFrame(response.json())
         if len(newDf) > 0:
-            newDf['t']=newDf.apply(lambda x: getDatetime(x.t)[0:10] ,axis=1)
+            newDf['t']=newDf.apply(lambda x: getIntradayDatetime(x.t)[0:10] ,axis=1)
             newDf['Change'] = 0
             newDf.rename(columns={"t": "Date", "c": "Close", "o": "Open", "h": "High", "l": "Low", "Change": "Change", "v": "Volume"}, inplace=True)
             newDf = newDf[['Date', 'Close', 'Open', 'High', 'Low', 'Change', 'Volume']]

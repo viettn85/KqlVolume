@@ -93,7 +93,7 @@ def getStocks(stockFile):
 
 def getLastCashflow():
     list_of_files = glob.glob(data_location + os.getenv("data_cashflow") + "*") # * means all if need specific format then *.csv
-    latest_file = maxkgyy (list_of_files, key=os.path.getmtime)
+    latest_file = max(list_of_files, key=os.path.getmtime)
     print(latest_file)
     return latest_file
 
