@@ -178,20 +178,20 @@ def checkStock(stock):
         print("{} is NOT a high value stock".format(stock))
     # print("\nACTIVE VOLS:")
     # print(pd.read_csv("{}{}.csv".format(data_location + os.getenv("data_active"), stock), index_col = "Date").head(10))
-    # print("\nTRADE COUNTS:")
-    # today = datetime.now()
-    # cashflowDf = pd.DataFrame()
-    # for i in range(0, 14):
-    #     date = (today + relativedelta(days=-i)).strftime(DATE_FORMAT)
-    #     try:
-    #         df = pd.read_csv("{}{}.csv".format(data_location + os.getenv("data_cashflow"), date))
-    #         df['Date'] = date
-    #         cashflowDf = cashflowDf.append(df[df.Stock == stock])
-    #     except:
-    #         dump = 0
-    # print(cashflowDf[['Date', 'B', 'S', 'G', 'BB', 'BS', 'BG']])
-    # print("\nHourly Cashflow Report:")
-    # reportHourVolumes(stock)
+    print("\nTRADE COUNTS:")
+    today = datetime.now()
+    cashflowDf = pd.DataFrame()
+    for i in range(0, 14):
+        date = (today + relativedelta(days=-i)).strftime(DATE_FORMAT)
+        try:
+            df = pd.read_csv("{}{}.csv".format(data_location + os.getenv("data_cashflow"), date))
+            df['Date'] = date
+            cashflowDf = cashflowDf.append(df[df.Stock == stock])
+        except:
+            dump = 0
+    print(cashflowDf[['Date', 'B', 'S', 'G', 'BB', 'BS', 'BG']])
+    print("\nHourly Cashflow Report:")
+    reportHourVolumes(stock)
 
 if __name__ == '__main__':
     if sys.argv[1] == "ducky":

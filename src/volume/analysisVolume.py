@@ -336,8 +336,8 @@ def sendHighVolumes():
     sendEmail("High Volumes", message, "html")
 
 def autoScan():
-    # reportCashflows()
-    # sendCashflowReports()
+    reportCashflows()
+    sendCashflowReports()
     # sendEmail("High ratio reports", getHighRatios(), "html")
     # sendHighVolumes()
 
