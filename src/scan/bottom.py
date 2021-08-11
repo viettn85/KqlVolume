@@ -139,7 +139,7 @@ def reportFoundStocks(stocks, rowIndex):
     if len(bottomCorrectionStocksV2) > 0:
         message = message + "<h3>Bottom correction V2 (MACD SIGNAL can be above 0):</h3>" + "\n"
         message = message + ",".join(bottomCorrectionStocksV2)
-    message = message + "<b>Please check Stoch divergence, trendlines, MA and other resistances<b>\n"
+    message = message + "\n\n<b>Please check Stoch divergence, trendlines, MA and other resistances<b>\n"
     message = message + "<b>Exit trade early if you enter for Bottom stocks breaking down MA200<b>"
     sendEmail("Scan Stock Patterns", message, "html")
 

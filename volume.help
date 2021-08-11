@@ -18,3 +18,4 @@ Scan patterns:
 - kqls bottom history: scan patterns last 3 days
 - kqls bottom STOCK(AAA): scan all patterns of a stock 
 - kqls bottom email: scan and send patterns
+- kqls trend down: List all stocks having 5 red candles or being reduced more than 20%

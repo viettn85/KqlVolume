@@ -37,4 +37,7 @@ then
 elif [ $1 == 'bottom' ] 
 then
     python3 src/scan/bottom.py $2
+elif [ $1 == 'trend' ] 
+then
+    python3 src/scan/trends.py $2
 fi
