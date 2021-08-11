@@ -2,6 +2,7 @@
 
 image_location="/Users/viet_tran/Google Drive/Working/Trading/Stock/Screenshots/"
 stock_location="/Users/viet_tran/Workplace/kql/data/stock/"
+custom_stock_location="stocks/"
 
 stockList="vn30"
 echo stockList
@@ -26,7 +27,7 @@ done < "$input"
 stockList="following"
 echo stockList
 rm -f "${image_location}${stockList}/*.png"
-input="${stock_location}${stockList}.csv"
+input="${custom_stock_location}${stockList}.csv"
 while IFS= read -r line
 do
   echo "$line"
@@ -66,7 +67,7 @@ done < "$input"
 stockList="portfolio"
 echo stockList
 rm -f "${image_location}${stockList}/*.png"
-input="${stock_location}${stockList}.csv"
+input="${custom_stock_location}${stockList}.csv"
 while IFS= read -r line
 do
   echo "$line"

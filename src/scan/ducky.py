@@ -28,117 +28,46 @@ tz = os.getenv("timezone")
 date_format = os.getenv("date_format")
 datetime_format = os.getenv("datetime_format")
 
-def isCrossMA(row):
-    minMA = min(row.MA200, row.MA50, row.MA20)
-    maxMA = max(row.MA200, row.MA50, row.MA20)
-    if (abs(minMA - maxMA)/row.Close) <= float(os.getenv("ma_distance")):
-        return True
-    return False
-
-def isSoftzone(row, histogramThreshold, macdThreshold, macdSignalThreshold):
-    if isCrossMA(row) and (abs(row.Histogram) < histogramThreshold) \
-        and (abs(row.MACD) < macdThreshold) and (abs(row.MACD_SIGNAL) < histogramThreshold):
-        return True
-    return False
-
-def isUptrend(df, i):
-    row = df.loc[i]
-    if (row.MA20 > row.MA50) and (row.MA50 > row.MA200):
-        return True
-    return False
-
-def isDowntrend(df, i):
-    row = df.loc[i]
-    if (row.MA20 < row.MA50) and (row.MA50 < row.MA200):
-        return True
-    return False
-
-def isUptrendCorrection(df, i):
-    try:
-        row = df.loc[i]
-        prow = df.loc[i+1]
-        srow = df.loc[i+15]
-        maxMA = max(row.MA20, row.MA50)
-        minMA = min(row.MA20, row.MA50)
-        if (row.Close < maxMA) or (minMA < row.MA200) or (row.RSI < 48):
-            return False
-        minMACD = min(list(df.loc[i:i+15].MACD_SIGNAL))
-        minStoch = min(list(df.loc[i:i+15]['%D']))
-        # if row.Date == '2021-08-06':
-        #     print(row)
-        #     print(minStoch, srow['%D'], minMACD, srow.MACD_SIGNAL)
-        #     print(((minStoch < srow['%D']) and (minStoch < 25) and (minStoch < row['%D'])))
-        #     print(list(df.loc[i:i+10]['MACD_SIGNAL']))
-        #     print(((minMACD < srow.MACD_SIGNAL) and (minMACD < row.MACD_SIGNAL)))
-        if (((minStoch < srow['%D']) and (minStoch < 25) and (minStoch < row['%D'])) or ((minMACD < srow.MACD_SIGNAL) and (minMACD < row.MACD_SIGNAL))) and (prow.Close < max(prow.MA20, prow.MA50)):
-            return True
-        return False
-    except:
-        return False
-
-def isDowntrendCorrection(df, i):
-    try:
-        row = df.loc[i]
-        prow = df.loc[i+1]
-        srow = df.loc[i+15]
-        maxMA = max(row.MA20, row.MA50)
-        minMA = min(row.MA20, row.MA50)
-        if (row.Close > minMA) or (maxMA > row.MA200) or (row.RSI > 52):
-            return False
-        maxMACD = max(list(df.loc[i:i+15].MACD_SIGNAL))
-        maxStoch = max(list(df.loc[i:i+15]['%D']))
-        # if row.Date == '2020-02-25':
-        #     print(row)
-        #     print(maxStoch, srow['%D'], maxMACD, srow.MACD_SIGNAL)
-        #     print(((maxStoch > srow['%D']) and (maxStoch > 75) and (maxStoch > row['%D'])))
-            # print(list(df.loc[i:i+10]['MACD_SIGNAL']))
-            # print(((maxMACD > srow.MACD_SIGNAL) and (maxMACD > row.MACD_SIGNAL)))
-        if (((maxStoch > srow['%D']) and (maxStoch > 75) and (maxStoch > row['%D'])) or ((maxMACD > srow.MACD_SIGNAL) and (maxMACD > row.MACD_SIGNAL))) and (prow.Close > min(prow.MA20, prow.MA50)):
-            return True
-        return False
-    except:
-        return False
-
-def shouldExitLong(df, i, subDf, position):
-    row = df.iloc[i]
-    newDf = subDf[subDf.Date > row.Date].tail(3)
-    for i in reversed(range(len(newDf))):
-        if (newDf.iloc[i].Close < newDf.iloc[i].MA20) and (row.MA50 > row.MA200) and (row.MA20 > row.MA50):
-            if (not position["ShouldExitLong"]):
-                position["UptrendCorrection"] = False
-                position["ShouldExitLong"] = True
-                return True
-        else:
-            position["ShouldExitLong"] = False
-    return False
-
-def shouldExitShort(df, i, subDf):
-    row = df.iloc[i]
-    newDf = subDf[subDf.Date > row.Date].tail(3)
-    for i in reversed(range(len(newDf))):
-        if (newDf.iloc[i].Close > newDf.iloc[i].MA20) and (row.MA50 < row.MA200) and (row.MA20 < row.MA50):
-            return True
-    return False
-
-def findPatterns(df, i, subDf):
-    row = df.loc[i]
-    patterns = []
-    histogramThreshold = max(df.Histogram) / 5
-    macdThreshold = max(df.MACD) / 5
-    macdSignalThreshold = max(df.MACD_SIGNAL) / 5
-    if isSoftzone(row, histogramThreshold, macdThreshold, macdSignalThreshold):
-        patterns.append("Softzone")
-    # elif isCrossMA(row):
-    #     patterns.append("CrossMA")
-    if isUptrendCorrection(df, i):
-        patterns.append("UptrendCorrection")
-    if isDowntrendCorrection(df, i):
-        patterns.append("DowntrendCorrection")
-    # if shouldExitLong(df, i, subDf, position):
-    #     patterns.append("ShouldExitLong")
-    # if shouldExitShort(df, i, subDf, position):
-    #     patterns.append("ShouldExitShort")
-    return patterns
+def checkDuckyPattern(df, rowIndex):
+    getIndicators(df)
+    criteria = []
+    status = []
+    criteria.append("Above MA200")
+    if df.Close.iloc[rowIndex] > df.MA200.iloc[rowIndex]:
+        status.append(True)
+    else:
+        status.append(False)
+    criteria.append("Above MA50")
+    if df.Close.iloc[rowIndex] > df.MA50.iloc[rowIndex]:
+        status.append(True)
+    else:
+        status.append(False)
+    criteria.append("Histogram increased")
+    # if (df.Histogram.iloc[rowIndex] > df.Histogram.iloc[rowIndex + 1]) and (df.MACD_SIGNAL.iloc[rowIndex] < df.MACD_SIGNAL.iloc[rowIndex + 1]):
+    if (df.Histogram.iloc[rowIndex] > df.Histogram.iloc[rowIndex + 1]):
+        status.append(True)
+    else:
+        status.append(False)
+    criteria.append("RSI Above 48")
+    if df.RSI.iloc[rowIndex] >= 48:
+        status.append(True)
+    else:
+        status.append(False)
+    criteria.append("ADX Above 20")
+    if round(df.ADX.iloc[rowIndex], 0) >= 17:
+        status.append(True)
+    else:
+        status.append(False)
+    criteria.append("ADX DI+ increased and DI- decreased")
+    # if (df.PDI.iloc[rowIndex] >= df.PDI.iloc[rowIndex + 1]) and ((df.NDI.iloc[rowIndex] <= df.NDI.iloc[rowIndex + 1])) and ((df.PDI.iloc[rowIndex] <= df.NDI.iloc[rowIndex])):
+    # print(df.PDI.iloc[rowIndex], df.PDI.iloc[rowIndex + 1], df.NDI.iloc[rowIndex], df.NDI.iloc[rowIndex + 1])
+    if (round(df.PDI.iloc[rowIndex],0) >= round(df.PDI.iloc[rowIndex + 1], 0)) and ((round(df.NDI.iloc[rowIndex], 0) <= round(df.NDI.iloc[rowIndex + 1], 0))):
+        status.append(True)
+    else:
+        status.append(False)
+    duckyDf = pd.DataFrame.from_dict({"Criteria": criteria, "Status": status})
+    # print(duckyDf)
+    return duckyDf
 
 def scan(stocks, rowIndex, bigTimeframe, smallTimeframe):
     message = ""
@@ -176,9 +105,10 @@ def checkStock(stock):
     # subDf = pd.read_csv("{}{}_{}.csv".format(intraday, smallTimeframe, stock))
     getIndicators(df)
     for i in reversed(range(len(df) - 200)):
-        patterns = findPatterns(df, i, [])
-        if len(patterns) > 0:
-            print(df.iloc[i].Date, patterns)
+        # if df.iloc[i].Date == "2021-06-14":
+            duckyDf = checkDuckyPattern(df, i)
+            if sum(list(duckyDf.Status)) == 6:
+                print(df.iloc[i].Date, "True")
 
 def scanStocks():
     if isWeekday():

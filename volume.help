@@ -12,3 +12,9 @@ Create reports and send emails:
 - kqls report scan STOCK_LIST (portfolio): Report for a stock list
 - kqls report cash ACTION(B10/S10/BB10/BS10): Report the top 10 of B/S/BB/BS
 - kqls report hour STOCK(AAA): Show the hourly cashflow report
+
+Scan patterns:
+- kqls bottom: scan patterns on last trading day 
+- kqls bottom history: scan patterns last 3 days
+- kqls bottom STOCK(AAA): scan all patterns of a stock 
+- kqls bottom email: scan and send patterns

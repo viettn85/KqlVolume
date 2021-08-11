@@ -30,8 +30,11 @@ then
     python3 src/volume/analysisVolume.py $2 $3 $4 $5
 elif [ $1 == 'shoot' ] 
 then
-    python3 src/chart/ducky.py $2
+    python3 src/chart/ducky.py $2 $3
 elif [ $1 == 'market' ] 
 then
     python3 src/scan/ducky.py $2
+elif [ $1 == 'bottom' ] 
+then
+    python3 src/scan/bottom.py $2
 fi

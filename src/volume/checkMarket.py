@@ -92,7 +92,6 @@ def checkValue():
 
 def checkDuckyPattern(df):
     getIndicators(df)
-    # print(df.head())
     criteria = []
     status = []
     criteria.append("Above MA200")
@@ -105,23 +104,14 @@ def checkDuckyPattern(df):
         status.append(True)
     else:
         status.append(False)
-    criteria.append("Above MA20")
-    if df.Close.iloc[0] > df.MA20.iloc[0]:
+    criteria.append("Histogram increased")
+    print(df.Histogram.iloc[0], df.Histogram.iloc[1], df.MACD_SIGNAL.iloc[0], df.MACD_SIGNAL.iloc[1])
+    if (df.Histogram.iloc[0] > df.Histogram.iloc[1]) and (df.MACD_SIGNAL.iloc[0] < df.MACD_SIGNAL.iloc[1]):
         status.append(True)
     else:
         status.append(False)
-    criteria.append("Positive MACD")
-    if df.MACD.iloc[0] > 0:
-        status.append(True)
-    else:
-        status.append(False)
-    criteria.append("Cross MACD")
-    if df.Histogram.iloc[0] > 0:
-        status.append(True)
-    else:
-        status.append(False)
-    criteria.append("RSI Above 50")
-    if df.RSI.iloc[0] >= 50:
+    criteria.append("RSI Above 48")
+    if df.RSI.iloc[0] >= 48:
         status.append(True)
     else:
         status.append(False)
@@ -130,26 +120,27 @@ def checkDuckyPattern(df):
         status.append(True)
     else:
         status.append(False)
-    criteria.append("ADX DI+ Above DI-")
-    if df.PDI.iloc[0] >= df.NDI.iloc[0]:
+    criteria.append("ADX DI+ increased and DI- decreased")
+    if (df.PDI.iloc[0] >= df.PDI.iloc[1]) and ((df.NDI.iloc[0] <= df.NDI.iloc[1])) and ((df.PDI.iloc[0] <= df.NDI.iloc[0])):
         status.append(True)
     else:
         status.append(False)
+
     duckyDf = pd.DataFrame.from_dict({"Criteria": criteria, "Status": status})
     return duckyDf
 
 def scanDucky():
-    all_stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
     high_value_stocks = list(pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)[0])
+    high_value_stocks = ['MBB','REE']
     duckyList = []
     candidateList = []
     for stock in high_value_stocks:
         data = data_location + os.getenv("data_realtime")
         duckyDf = checkDuckyPattern(pd.read_csv("{}{}.csv".format(data, stock)))
         metricCount = sum(list(duckyDf.Status))
-        if metricCount == 8:
+        if metricCount == 6:
             duckyList.append(stock)
-        elif metricCount == 7:
+        elif (metricCount == 5) and (duckyDf[duckyDf.Criteria == 'Histogram increased'].iloc[0].Status == False):
             candidateList.append(stock)
     if len(duckyList) > 0:
         print("There are {} stocks on the Ducky pattern".format(len(duckyList)))

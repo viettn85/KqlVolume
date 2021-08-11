@@ -55,13 +55,15 @@ from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 # init_notebook_mode()
 
 def exportList(stockList, location=None):
-    print("Exporting " + stockList)
-    stocks = list(pd.read_csv(data_location + os.getenv(stockList), header=None)[0])
+    if type(stockList) == list:
+        stocks = stockList
+        stockList = location
+    else:
+        stocks = list(pd.read_csv(data_location + os.getenv(stockList), header=None)[0])
     if location == None:
         location = os.getenv("images") + stockList
     else:
         location = os.getenv("images") + location
-    print(location)
     if os.path.isdir(location):
         shutil.rmtree(location, ignore_errors=True)
     os.mkdir(location) 
@@ -81,5 +83,9 @@ def drawQuant(stock):
 if __name__ == "__main__":
     if sys.argv[1] == "daily":
         exportList("all_stocks", "daily")
-    elif sys.argv[1] in ['ducky', 'following']:
+    if sys.argv[1] in ['portfolio', 'following']:
         exportList(sys.argv[1])
+    if (',' in sys.argv[1]) or (len(sys.argv[1]) == 3):
+        stocks = sys.argv[1].split(',')
+        exportList(stocks, sys.argv[2])
+    
