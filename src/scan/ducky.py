@@ -54,7 +54,7 @@ def checkDuckyPattern(df, rowIndex):
     else:
         status.append(False)
     criteria.append("ADX Above 20")
-    if round(df.ADX.iloc[rowIndex], 0) >= 17:
+    if round(df.ADX.iloc[rowIndex], 0) >= 20:
         status.append(True)
     else:
         status.append(False)
@@ -75,6 +75,7 @@ def scan(stocks, rowIndex, bigTimeframe, smallTimeframe):
     downtrendCorrections = []
     softzones = []
     date = ""
+    duckyStocks = []
     for stock in stocks:
         # logger.info("Scanning {}".format(stock))
         df = pd.read_csv("{}{}.csv".format(data_realtime, stock))
@@ -82,23 +83,12 @@ def scan(stocks, rowIndex, bigTimeframe, smallTimeframe):
         date = df.iloc[rowIndex].Date
         getIndicators(df)
         # getIndicators(subDf)
-        patterns = findPatterns(df, rowIndex, [])
-        # if len(patterns) > 0:
-        #     print(stock, patterns)
-        if "UptrendCorrection" in patterns:
-            uptrendCorrections.append(stock)
-        if "DowntrendCorrection" in patterns:
-            downtrendCorrections.append(stock)
-        if "Softzone" in patterns:
-            softzones.append(stock)
-    # return (uptrendCorrections, downtrendCorrections, softzones)
-    print("Scan patterns of the market on {}".format(date))
-    if len(uptrendCorrections) > 0:
-        print("Uptrend Corrections: {}".format(','.join(uptrendCorrections)))
-    if len(downtrendCorrections) > 0:
-        print("Downtrend Correction: {}".format(','.join(downtrendCorrections)))
-    if len(softzones) > 0:
-        print("Softzone: {}".format(','.join(softzones)))
+        duckyDf = checkDuckyPattern(df, rowIndex)
+        if sum(list(duckyDf.Status)) == 6:
+            duckyStocks.append(stock)
+    if len(duckyStocks) > 0:
+        print("Ducky stocks on {}:".format(date))
+        print(','.join(duckyStocks))
 
 def checkStock(stock):
     df = pd.read_csv("{}{}.csv".format(data_realtime, stock))

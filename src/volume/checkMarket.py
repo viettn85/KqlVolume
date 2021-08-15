@@ -49,7 +49,9 @@ def checkIndustries():
 
 def checkIndustry(industry):
     df = getIndustryValues()
+    
     df = df[df.Industry == industry]
+    print(list(df.index))
     df.sort_values('Value', ascending=False, inplace=True)
     print(df[['Value']].head(10))
 
@@ -104,9 +106,8 @@ def checkDuckyPattern(df):
         status.append(True)
     else:
         status.append(False)
-    criteria.append("Histogram increased")
-    print(df.Histogram.iloc[0], df.Histogram.iloc[1], df.MACD_SIGNAL.iloc[0], df.MACD_SIGNAL.iloc[1])
-    if (df.Histogram.iloc[0] > df.Histogram.iloc[1]) and (df.MACD_SIGNAL.iloc[0] < df.MACD_SIGNAL.iloc[1]):
+    criteria.append("Histogram increased and Below 0")
+    if (df.Histogram.iloc[0] > df.Histogram.iloc[1]) and (df.MACD_SIGNAL.iloc[0] < 0):
         status.append(True)
     else:
         status.append(False)
@@ -121,7 +122,7 @@ def checkDuckyPattern(df):
     else:
         status.append(False)
     criteria.append("ADX DI+ increased and DI- decreased")
-    if (df.PDI.iloc[0] >= df.PDI.iloc[1]) and ((df.NDI.iloc[0] <= df.NDI.iloc[1])) and ((df.PDI.iloc[0] <= df.NDI.iloc[0])):
+    if (df.PDI.iloc[0] >= df.PDI.iloc[1]) and ((df.NDI.iloc[0] <= df.NDI.iloc[1])) and ((df.PDI.iloc[0] >= df.NDI.iloc[0])):
         status.append(True)
     else:
         status.append(False)
@@ -131,7 +132,7 @@ def checkDuckyPattern(df):
 
 def scanDucky():
     high_value_stocks = list(pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)[0])
-    high_value_stocks = ['MBB','REE']
+    # high_value_stocks = ['MBB','REE']
     duckyList = []
     candidateList = []
     for stock in high_value_stocks:
@@ -140,7 +141,7 @@ def scanDucky():
         metricCount = sum(list(duckyDf.Status))
         if metricCount == 6:
             duckyList.append(stock)
-        elif (metricCount == 5) and (duckyDf[duckyDf.Criteria == 'Histogram increased'].iloc[0].Status == False):
+        elif (metricCount == 5) and (duckyDf[duckyDf.Criteria == 'Histogram increased and Below 0'].iloc[0].Status == False):
             candidateList.append(stock)
     if len(duckyList) > 0:
         print("There are {} stocks on the Ducky pattern".format(len(duckyList)))

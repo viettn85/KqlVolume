@@ -1,3 +1,3 @@
 #!/bin/bash
 cd /apps/KqlVolume/
-nohup python3 src/crawler/transaction.py realtime
+nohup python3 src/crawler/transactions.py realtime
