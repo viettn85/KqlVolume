@@ -76,7 +76,7 @@ def exportList(stockList, location=None):
         stocks = stockList
         stockList = location
     else:
-        stocks = list(pd.read_csv(data_location + os.getenv(stockList), header=None)[0])
+        stocks = list(pd.read_csv("stocks/{}.csv".format(stockList), header=None)[0])
     if location == None:
         location = os.getenv("images") + stockList
     else:

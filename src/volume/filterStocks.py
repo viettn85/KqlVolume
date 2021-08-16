@@ -146,7 +146,7 @@ def sendCategories():
 
 if __name__ == '__main__':
     filterStockByValues()
-    categorizeStocks()
-    sendCategories()
+    # categorizeStocks()
+    # sendCategories()
     # sendActiveVolList("ducky")
     # sendActiveVolList("potential")

@@ -117,36 +117,50 @@ def reportHourVolumes(stock):
         highValueDf = pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)
         highValueDf.columns = ['Stock', 'Value']
         highValueDf.set_index('Stock', inplace=True)
-        all_df = pd.read_csv(data_location + "data/intraday/{}/{}.csv".format(date, stock), parse_dates=['tradingTime'])
-        all_df['Hour'] = all_df.tradingTime.dt.hour
+        all_df = pd.read_csv(data_location + "data/intraday/{}/{}.csv".format(date, stock), parse_dates=['DateTime'])
+        all_df['Hour'] = all_df.apply(lambda x: int(x.DateTime[:-4]), axis=1)
+        price = all_df.Price.iloc[0]
         tradeCounts = []
         bigTradeCounts = []
+        
         for hour in [9, 10, 11, 13, 14]:
-            df = all_df.loc[all_df['tradingTime'].dt.hour == hour]
-            sideDict  = df.groupby(['side']).agg('count')['price'].to_dict()
+            df = all_df[all_df.Hour == hour]
+            sideDict  = df.groupby(['Side']).agg('count')['Price'].to_dict()
             sideDict['Hour'] = hour
             tradeCounts.append(sideDict)
-            df['Value'] = df.volume * df.price
-            # print(df.head())
-            if (df.price.iloc[0] <= 30) or (highValueDf.loc[stock].Value <= 300):
+            df['Value'] = df.Volume * df.Price
+            df.sort_values("Value", ascending=False, inplace=True)
+            
+            if (price <= 30) or (highValueDf.loc[stock].Value <= 300):
                 df = df[df.Value > 500000]
             else:
                 df = df[df.Value > 1000000]
-            sideDict  = df.groupby(['side']).agg('count')['price'].to_dict()
-            sideDict['Hour'] = hour
-            bigTradeCounts.append(sideDict)
+            if len(df) > 0:
+                sideDict  = df.groupby(['Side']).agg('count')['Price'].to_dict()
+                sideDict['Hour'] = hour
+                bigTradeCounts.append(sideDict)
+            else:
+                bigTradeCounts.append({'B': 0, 'S': 0, 'Stock': stock})
+            # traceback.print_exc()
         tradeCounts = pd.DataFrame(tradeCounts)
-        bigTradeCounts = pd.DataFrame(bigTradeCounts)
-        bigTradeCounts.rename(columns={"B": "BB", "S": "BS"}, inplace=True)
-        finalDf = pd.merge(tradeCounts, bigTradeCounts, on="Hour")
-        finalDf.fillna(0, inplace=True)
-        finalDf["G"] = finalDf.B - finalDf.S
-        finalDf["BG"] = finalDf.BB - finalDf.BS
-        finalDf = finalDf[["Hour", "B", "S", "G", "BB", "BS", "BG"]]
-        print(finalDf)
+        if len(tradeCounts) > 0:
+            tradeCounts["G"] = tradeCounts.B - tradeCounts.S
+            bigTradeCounts = pd.DataFrame(bigTradeCounts)
+            # print(tradeCounts.head())
+            if len(bigTradeCounts) > 0:
+                bigTradeCounts.rename(columns={"B": "BB", "S": "BS"}, inplace=True)
+                finalDf = pd.merge(tradeCounts, bigTradeCounts, on="Hour")
+                finalDf["BG"] = finalDf.BB - finalDf.BS
+                finalDf = finalDf[["Hour", "B", "S", "G", "BB", "BS", "BG"]]
+            else:
+                finalDf = tradeCounts
+                finalDf = finalDf[["Hour", "B", "S", "G"]]
+            finalDf.fillna(0, inplace=True)
+            print(finalDf)
     except:
         print("Error to report {} hourly".format(stock))
-        # traceback.print_exc()
+        traceback.print_exc()
+        
     
     
 def reportCashflows():
