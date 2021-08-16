@@ -11,6 +11,9 @@ import logging
 import logging.config
 from utils import *
 
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 logging.config.fileConfig(fname='log.conf', disable_existing_loggers=False)
 logger = logging.getLogger()
 
@@ -44,17 +47,21 @@ def getIntraday(stock):
             'Content-Length': '1000',
             'Host': 'trading.hsc.com.vn'
             }
-        r = requests.post(url=os.getenv('hsc_intraday_url'), headers=headers, data=json.dumps(params), verify=False)
-        data = r.json()['result']
-        df = pd.DataFrame(data)
-        df = df[['Time', 'Vol', 'TranType', 'Price']]
-        df.Price = df.Price / 1000
-        df.columns = ['DateTime', 'Volume', 'Side', 'Price']
-        df.Side = df.apply(lambda x: convertSide(x.Side), axis=1)
-        if not os.path.isdir(location):
-            os.mkdir(location) 
-        df.to_csv("{}{}.csv".format(location, stock), index=None)
-        logger.info("Updated transaction for {}".format(stock))
+        r = requests.post(url=os.getenv('hsc_intraday_url'), headers=headers, data=json.dumps(params), verify=False).json()
+        if 'result' not in r:
+            logger.info("Request failed as authentication or incorrect input data for {}".format(stock))
+        else:
+            data = r['result']
+            df = pd.DataFrame(data)
+            df = df[['Time', 'Vol', 'TranType', 'Price']]
+            df.Price = df.Price / 1000
+            df.columns = ['DateTime', 'Volume', 'Side', 'Price']
+            df.Side = df.apply(lambda x: convertSide(x.Side), axis=1)
+            if not os.path.isdir(location):
+                os.mkdir(location)
+            if len(df) > 0:
+                df.to_csv("{}{}.csv".format(location, stock), index=None)
+            logger.info("Updated transaction for {}".format(stock))
     except:
         traceback.print_exc()
         logger.error('Error to get intraday for {} on {}'.format(stock, date))

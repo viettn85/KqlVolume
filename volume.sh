@@ -18,6 +18,9 @@ then
     elif [ $2 == 'realtime' ]
     then
         python3 src/crawler/realtime.py
+    elif [ $2 == 'intraday' ]
+    then
+        python3 src/crawler/intraday_hsc.py
     fi
 elif [ $1 == 'filter' ] 
 then
