@@ -20,7 +20,7 @@ then
         python3 src/crawler/realtime.py
     elif [ $2 == 'intraday' ]
     then
-        python3 src/crawler/intraday_hsc.py
+        python3 src/crawler/intraday_hsc.py $3
     fi
 elif [ $1 == 'filter' ] 
 then

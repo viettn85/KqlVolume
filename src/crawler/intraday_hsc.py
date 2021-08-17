@@ -28,8 +28,24 @@ COOKIE = os.getenv('hsc_cookie')
 def getIntraday(stock):
     date = getLastTradingDay()
     location = data_location + "data/intraday/{}/".format(date)
+    # print(location)
     try:
-        params = {
+        if "VN30F" in stock:
+            params = {
+                "symbol": stock,
+                "market": "VN",
+                "time": -1,
+                "workingDay": 0,
+                "isLoadDynamic": False,
+                "isLoadTransLog": True,
+                "stockType": "F",
+                "pageIndex": 0,
+                "pageSize": 0,
+                "coreType": -1
+            }
+            location = data_location + "data/future/transaction/{}/".format(stock)
+        else:
+            params = {
                 "symbol": stock,
                 "market": "O",
                 "time": -1,
@@ -40,7 +56,7 @@ def getIntraday(stock):
                 "pageIndex": 0,
                 "pageSize": 0,
                 "coreType": -1
-                }
+            }
         headers = {
             'cookie': COOKIE,
             'Content-Type': 'application/json',
@@ -60,7 +76,10 @@ def getIntraday(stock):
             if not os.path.isdir(location):
                 os.mkdir(location)
             if len(df) > 0:
-                df.to_csv("{}{}.csv".format(location, stock), index=None)
+                if "VN30F" in stock:
+                    df.to_csv("{}{}.csv".format(location, date), index=None)
+                else:
+                    df.to_csv("{}{}.csv".format(location, stock), index=None)
             logger.info("Updated transaction for {}".format(stock))
     except:
         traceback.print_exc()
@@ -75,6 +94,10 @@ def convertSide(value):
         return "S"
 
 if __name__ == "__main__":
-    all_stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
-    for stock in all_stocks:
-        getIntraday(stock)
+    if len(sys.argv) == 1:
+        all_stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
+        # all_stocks = ['AAA']
+        for stock in all_stocks:
+            getIntraday(stock)
+    elif sys.argv[1] == 'ps':
+        getIntraday(os.getenv("ps_symbol"))

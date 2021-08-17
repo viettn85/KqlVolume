@@ -25,3 +25,15 @@ Create reports and send emails:
 - kqls report sides: Generate the cashflow report
 - kqls report cash ACTION(B10/S10/BB10/BS10): Report the top 10 of B/S/BB/BS
 - kqls report hour STOCK(AAA): Show the hourly cashflow report
+
+Scan patterns:
+- kqls bottom: scan patterns on last trading day 
+- kqls bottom history: scan patterns last 3 days
+- kqls bottom STOCK(AAA): scan all patterns of a stock 
+- kqls bottom email: scan and send patterns
+- kqls trend down: List all stocks having 5 red candles or being reduced more than 20%
+
+Screenshot:
+- kqls shoot all: screenshot all stocks
+- kqls shoot STOCK_LIST (portfolio/vn30/following...)
+- kqls shoot XXX,YYY,ZZZ test: screenshot XXX, YYY and ZZZ to folder test

@@ -15,6 +15,7 @@ for stockList in ${stockLists[*]}; do
       while IFS= read -r line
       do
         echo "$line"
-        cp "${image_location}daily/${line}.png" "${image_location}${stockList}"
+        cp "${image_location}daily/${line}_D.png" "${image_location}${stockList}"
+        cp "${image_location}hourly/${line}_60.png" "${image_location}${stockList}"
       done < "$input"
 done

@@ -19,3 +19,8 @@ Scan patterns:
 - kqls bottom STOCK(AAA): scan all patterns of a stock 
 - kqls bottom email: scan and send patterns
 - kqls trend down: List all stocks having 5 red candles or being reduced more than 20%
+
+Screenshot:
+- kqls shoot all: screenshot all stocks
+- kqls shoot STOCK_LIST (portfolio/vn30/following...)
+- kqls shoot XXX,YYY,ZZZ test: screenshot XXX, YYY and ZZZ to folder test

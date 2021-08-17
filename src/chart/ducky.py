@@ -6,15 +6,17 @@ import mplfinance as fplt
 from utils import *
 from dotenv import load_dotenv
 import shutil
+import traceback
 
 load_dotenv(dotenv_path='stock.env')
 np.seterr(divide='ignore', invalid='ignore')
 data_location = os.getenv("data")
 data_realtime = data_location + os.getenv("data_realtime")
 
-def draw(stock, location):
+
+def draw(stock, location, timeframe):
     try:
-        df = pd.read_csv("{}{}.csv".format(data_realtime, stock), parse_dates=True)
+        df = pd.read_csv("{}{}_{}.csv".format(data_realtime, stock, timeframe), parse_dates=True)
         getIndicators(df)
         df.index = pd.DatetimeIndex(df['Date'])
         df['ADX20'] = 20
@@ -61,53 +63,46 @@ def draw(stock, location):
                     # mav=(20, 50, 200),
                     volume=True,
                     addplot=apds,
-                    savefig=dict(fname='{}/{}.png'.format(location, stock),dpi=100,pad_inches=0.25)
+                    savefig=dict(fname='{}/{}_{}.png'.format(location, stock, timeframe),dpi=100,pad_inches=0.25)
         )
     except:
         print("Error to export {}".format(stock))
+        traceback.print_exc()
 
-import cufflinks as cf
-import chart_studio.plotly as py
-
-cf.set_config_file(theme='pearl',sharing='public',offline=True)
-from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
-# import cufflinks as cf
-# init_notebook_mode()
-
-def exportList(stockList, location=None):
-    if type(stockList) == list:
-        stocks = stockList
-        stockList = location
-    else:
-        stocks = list(pd.read_csv("stocks/{}.csv".format(stockList), header=None)[0])
-    if location == None:
-        location = os.getenv("images") + stockList
-    else:
-        location = os.getenv("images") + location
-    if os.path.isdir(location):
-        shutil.rmtree(location, ignore_errors=True)
-    os.mkdir(location) 
+def exportAll():
+    stocks = list(pd.read_csv("stocks/{}.csv".format('all_stocks'), header=None)[0])
     for stock in stocks:
-        draw(stock, location)
-    print("Exported " + stockList)
+        draw(stock, os.getenv("images") + "daily", 'D')
+        draw(stock, os.getenv("images") + 'hourly', '60')
+    print("Exported all daily and hourly charts")
 
-def drawQuant(stock):
-    df = pd.read_csv("{}{}.csv".format(data_realtime, stock), index_col="Date", parse_dates=True)[0:300]
-    # df.sort_index(ascending=True, inplace=True)
-    qf=cf.QuantFig(df,title='Apple Quant Figure',legend='top',name='GS', asImage=True, display_image=True)
-    qf.add_bollinger_bands()
-    qf.add_volume()
-    # qf.iplot(asImage=True)
-    py.image.save_as(qf.iplot(), 'scatter_plot', format='png')
+def exportList(stockList):
+    try:
+        stocks = list(pd.read_csv("stocks/{}.csv".format(stockList), header=None)[0])
+        # stocks = ['ELC']
+        location = os.getenv("images") + stockList
+        for stock in stocks:
+            draw(stock, location, 'D')
+            draw(stock, location, '60')
+        print("Exported " + stockList)
+    except:
+        print("Error to export {}".format(stockList))
+        # traceback.print_exc()
+
+def exportCustom(stocks, stockList):
+    location = os.getenv("images") + stockList
+    for stock in stocks:
+        draw(stock, location, 'D')
+        draw(stock, location, '60')
+    print("Exported " + stockList)
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:
-        if sys.argv[1] == "daily":
-            exportList("all_stocks", "daily")
+        if sys.argv[1] == "all":
+            exportAll()
         else:
-            # sys.argv[1] in ['portfolio', 'following']:
             exportList(sys.argv[1])
     if len(sys.argv) == 3:
         if (',' in sys.argv[1]) or (len(sys.argv[1]) == 3):
             stocks = sys.argv[1].split(',')
-            exportList(stocks, sys.argv[2])
+            exportCustom(stocks, sys.argv[2])

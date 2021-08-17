@@ -12,6 +12,7 @@ import logging.config
 import math
 from utils import *
 import traceback
+import time
 
 load_dotenv(dotenv_path='stock.env')
 
@@ -25,33 +26,44 @@ logging.config.fileConfig(fname='log.conf', disable_existing_loggers=False)
 logger = logging.getLogger()
 
 def crawlStock(resolution, stock, startTime, endTime):
-    URL = "https://chartdata1.mbs.com.vn/pbRltCharts/chart/history?symbol={}&resolution={}&from={}&to={}".format(stock, resolution, startTime, endTime)
-    response = requests.get(URL)
-    # print(response.json())
-    dailyDf = pd.DataFrame(response.json())
-    dailyDf['t']=dailyDf.apply(lambda x: getIntradayDatetime(x.t)[0:10] ,axis=1)
-    dailyDf['Change'] = 0
-    dailyDf.rename(columns={"t": "Date", "c": "Close", "o": "Open", "h": "High", "l": "Low", "Change": "Change", "v": "Volume"}, inplace=True)
-    dailyDf = dailyDf[['Date', 'Close', 'Open', 'High', 'Low', 'Change', 'Volume']]
-    dailyDf.Volume = dailyDf.Volume * 10
-    dailyDf.Volume = dailyDf.Volume.astype(int)
-    dailyDf.sort_values(by="Date", ascending=False, inplace=True)
-    dailyDf['Close_Shift'] = dailyDf.Close.shift(-1)
-    dailyDf.Change = dailyDf.apply(lambda x: round((x.Close - x.Close_Shift)/x.Close_Shift * 100, 2) ,axis=1)
-    dailyDf.drop('Close_Shift', axis=1, inplace=True)
-    dailyDf[['Close', 'Open', 'High', 'Low']] = round(dailyDf[['Close', 'Open', 'High', 'Low']], 2)
-    if resolution == "D":
-        dailyDf.to_csv("{}{}.csv".format(data_realtime, stock), index=None)
+    df = []
+    count = 0
+    while (len(df) == 0) and (count < 5):
+        URL = "https://plus24.mbs.com.vn/tradingview/api/1.1/history?symbol={}&resolution={}&from={}&to={}".format(stock, resolution, startTime, endTime)
+        # URL = "https://plus24.mbs.com.vn/tradingview/api/1.1/history?symbol={}&resolution={}&from={}&to={}".format(stock, resolution, startTime, endTime)
+        # print(URL)
+        # URL = "https://plus24.mbs.com.vn/tradingview/api/1.1/history?symbol=G36&resolution=60&from=1587679474&to=1629191854"
+        response = requests.get(URL)
+        # print(response.json())
+        df = pd.DataFrame(response.json())
+        count = count + 1
+    if len(df) == 0:
+        print("{} on {} has 0 record".format(stock. resolution))
+    if resolution == 'D':
+        df['t']=df.apply(lambda x: getIntradayDatetime(x.t)[0:10] ,axis=1)
     else:
-        dailyDf.to_csv("{}{}_{}.csv".format(data_realtime, stock, resolution), index=None)
-    return dailyDf
+        df['t']=df.apply(lambda x: getIntradayDatetime(x.t)[0:16] ,axis=1)
+    df['Change'] = 0
+    df.rename(columns={"t": "Date", "c": "Close", "o": "Open", "h": "High", "l": "Low", "Change": "Change", "v": "Volume"}, inplace=True)
+    df = df[['Date', 'Close', 'Open', 'High', 'Low', 'Change', 'Volume']]
+    df.Volume = df.Volume * 10
+    df.Volume = df.Volume.astype(int)
+    df.sort_values(by="Date", ascending=False, inplace=True)
+    df['Close_Shift'] = df.Close.shift(-1)
+    df.Change = df.apply(lambda x: round((x.Close - x.Close_Shift)/x.Close_Shift * 100, 2) ,axis=1)
+    df.drop('Close_Shift', axis=1, inplace=True)
+    df[['Close', 'Open', 'High', 'Low']] = round(df[['Close', 'Open', 'High', 'Low']], 2)
+    df.to_csv("{}{}_{}.csv".format(data_realtime, stock, resolution), index=None)
+    return df
 
 
 def updatePriceAndVolume():
     try:
-        fromDate = "2019-01-01"
-        toDate = datetime.now(timezone(tz)).strftime(date_format)
-        startTime = getEpoch(fromDate )
+        toDate = (datetime.now(timezone(tz)) + relativedelta(days=1)).strftime(date_format)
+        fromDateDaily = (datetime.now(timezone(tz)) + relativedelta(months=-15)).strftime(date_format)
+        fromDateHourly = (datetime.now(timezone(tz)) + relativedelta(months=-8)).strftime(date_format)
+        startTimeDaily = getEpoch(fromDateDaily)
+        startTimeHourly = getEpoch(fromDateHourly)
         endTime = getEpoch(toDate)
         all_stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
         high_value_stocks = list(pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)[0])
@@ -63,11 +75,12 @@ def updatePriceAndVolume():
         closes = []
         changes = []
         current_time = getCurrentTime()
-        # all_stocks = ['VNINDEX']
+        # all_stocks = ['ACB']
         for stock in all_stocks: 
             try:
-                dailyDf = crawlStock("D", stock, startTime, endTime)
-                hourDf = crawlStock("60", stock, startTime, endTime)
+                dailyDf = crawlStock("D", stock, startTimeDaily, endTime)
+                time.sleep(0.1)
+                hourDf = crawlStock("60", stock, startTimeHourly, endTime)
                 logger.info("Updated {}".format(stock))
                 if (len(dailyDf) > 0) and (100000 <= dailyDf.Volume.iloc[0]) and (stock in high_value_stocks):
                     ratio = round(dailyDf.iloc[0].Volume/dailyDf.iloc[1].Volume, 2)
@@ -82,6 +95,7 @@ def updatePriceAndVolume():
             except:
                 logger.error("Error updating price and volume for {}".format(stock))
                 # traceback.print_exc()
+            time.sleep(0.1)
         highVolDf = pd.DataFrame.from_dict({
             "Stock": stocks,
             "Ratio": ratios,
@@ -95,7 +109,7 @@ def updatePriceAndVolume():
         highVolDf.to_csv(data_location + os.getenv("high_volumes"), index=False)
     except:
         logger.error("Error updating prices and volumes")
-
+        traceback.print_exc()
 
 if __name__ == "__main__":
     (fromDate, toDate) = getDates()
