@@ -24,9 +24,9 @@ data_location = os.getenv("data")
 PIN = os.getenv('pinf')
 COOKIE = os.getenv('hsc_cookie')
 
+date = getLastTradingDay()
 
 def getIntraday(stock):
-    date = getLastTradingDay()
     location = data_location + "data/intraday/{}/".format(date)
     # print(location)
     try:
@@ -70,9 +70,12 @@ def getIntraday(stock):
             data = r['result']
             df = pd.DataFrame(data)
             df = df[['Time', 'Vol', 'TranType', 'Price']]
+            df.Time = df.apply(lambda x: convertDateTime(x.Time), axis = 1)
+            # df.Time = df.Time.str.slice(0, 9)
             df.Price = df.Price / 1000
             df.columns = ['DateTime', 'Volume', 'Side', 'Price']
             df.Side = df.apply(lambda x: convertSide(x.Side), axis=1)
+            # print(df.head())
             if not os.path.isdir(location):
                 os.mkdir(location)
             if len(df) > 0:
@@ -84,6 +87,10 @@ def getIntraday(stock):
     except:
         traceback.print_exc()
         logger.error('Error to get intraday for {} on {}'.format(stock, date))
+
+def convertDateTime(value):
+    value = str(value)[0:-4].zfill(4)
+    return "{}T{}:{}".format(date, value[:2], value[2:])
 
 def convertSide(value):
     if value == 0:

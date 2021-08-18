@@ -46,7 +46,7 @@ def crawlStock(resolution, stock, startTime, endTime):
     df['Change'] = 0
     df.rename(columns={"t": "Date", "c": "Close", "o": "Open", "h": "High", "l": "Low", "Change": "Change", "v": "Volume"}, inplace=True)
     df = df[['Date', 'Close', 'Open', 'High', 'Low', 'Change', 'Volume']]
-    df.Volume = df.Volume * 10
+    df.Volume = df.Volume
     df.Volume = df.Volume.astype(int)
     df.sort_values(by="Date", ascending=False, inplace=True)
     df['Close_Shift'] = df.Close.shift(-1)

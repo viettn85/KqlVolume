@@ -118,19 +118,22 @@ def reportHourVolumes(stock):
         highValueDf.columns = ['Stock', 'Value']
         highValueDf.set_index('Stock', inplace=True)
         all_df = pd.read_csv(data_location + "data/intraday/{}/{}.csv".format(date, stock), parse_dates=['DateTime'])
-        all_df['Hour'] = all_df.apply(lambda x: int(x.DateTime[:-4]), axis=1)
-        price = all_df.Price.iloc[0]
+        all_df['Hour'] = all_df.DateTime.dt.hour
+        all_df['Value'] = all_df.Volume * all_df.Price
+        price = all_df.iloc[0].Price
         tradeCounts = []
         bigTradeCounts = []
-        
+        print("The biggest BUY trade {:,}".format(int(max(all_df[all_df.Side == 'B'].Value))))
+        print("The biggest SELL trade {:,}".format(int(max(all_df[all_df.Side == 'S'].Value))))
         for hour in [9, 10, 11, 13, 14]:
-            df = all_df[all_df.Hour == hour]
+            df = all_df.loc[all_df['DateTime'].dt.hour == hour]
+            if len(df) == 0:
+                continue
             sideDict  = df.groupby(['Side']).agg('count')['Price'].to_dict()
             sideDict['Hour'] = hour
             tradeCounts.append(sideDict)
-            df['Value'] = df.Volume * df.Price
-            df.sort_values("Value", ascending=False, inplace=True)
             
+            # print(df.head())
             if (price <= 30) or (highValueDf.loc[stock].Value <= 300):
                 df = df[df.Value > 500000]
             else:
@@ -140,15 +143,16 @@ def reportHourVolumes(stock):
                 sideDict['Hour'] = hour
                 bigTradeCounts.append(sideDict)
             else:
-                bigTradeCounts.append({'B': 0, 'S': 0, 'Stock': stock})
-            # traceback.print_exc()
+                bigTradeCounts.append({'B': 0, 'S': 0, 'Hour': hour, 'Stock': stock})
         tradeCounts = pd.DataFrame(tradeCounts)
+
         if len(tradeCounts) > 0:
             tradeCounts["G"] = tradeCounts.B - tradeCounts.S
             bigTradeCounts = pd.DataFrame(bigTradeCounts)
             # print(tradeCounts.head())
             if len(bigTradeCounts) > 0:
                 bigTradeCounts.rename(columns={"B": "BB", "S": "BS"}, inplace=True)
+                # print(bigTradeCounts)
                 finalDf = pd.merge(tradeCounts, bigTradeCounts, on="Hour")
                 finalDf["BG"] = finalDf.BB - finalDf.BS
                 finalDf = finalDf[["Hour", "B", "S", "G", "BB", "BS", "BG"]]
@@ -160,7 +164,6 @@ def reportHourVolumes(stock):
     except:
         print("Error to report {} hourly".format(stock))
         traceback.print_exc()
-        
     
     
 def reportCashflows():

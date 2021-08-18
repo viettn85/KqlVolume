@@ -17,6 +17,7 @@ data_realtime = data_location + os.getenv("data_realtime")
 def draw(stock, location, timeframe):
     try:
         df = pd.read_csv("{}{}_{}.csv".format(data_realtime, stock, timeframe), parse_dates=True)
+        price = df.iloc[0].Close
         getIndicators(df)
         df.index = pd.DatetimeIndex(df['Date'])
         df['ADX20'] = 20
@@ -58,7 +59,7 @@ def draw(stock, location, timeframe):
                     df,
                     type='candle',
                     style=s,
-                    title=stock,
+                    title="{} - {} - {}".format(stock, timeframe, price),
                     ylabel='',
                     # mav=(20, 50, 200),
                     volume=True,

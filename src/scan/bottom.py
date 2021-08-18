@@ -149,7 +149,7 @@ def filterStocks(stocks, rowIndex):
     date = ""
     for stock in stocks:
         # logger.info("Scanning {}".format(stock))
-        df = pd.read_csv("{}{}.csv".format(data_realtime, stock))
+        df = pd.read_csv("{}{}_D.csv".format(data_realtime, stock))
         # subDf = pd.read_csv("{}{}_{}.csv".format(intraday, smallTimeframe, stock))
         date = df.iloc[rowIndex].Date
         getIndicators(df)
@@ -209,7 +209,7 @@ def reportFoundStocks(stocks, rowIndex):
     sendEmail("Scan Stock Patterns", message, "html")
 
 def checkStock(stock):
-    df = pd.read_csv("{}{}.csv".format(data_realtime, stock))
+    df = pd.read_csv("{}{}_D.csv".format(data_realtime, stock))
     # subDf = pd.read_csv("{}{}_{}.csv".format(intraday, smallTimeframe, stock))
     getIndicators(df)
     for rowIndex in reversed(range(len(df) - 200)):

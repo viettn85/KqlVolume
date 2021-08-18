@@ -137,7 +137,7 @@ def scanDucky():
     candidateList = []
     for stock in high_value_stocks:
         data = data_location + os.getenv("data_realtime")
-        duckyDf = checkDuckyPattern(pd.read_csv("{}{}.csv".format(data, stock)))
+        duckyDf = checkDuckyPattern(pd.read_csv("{}{}_D.csv".format(data, stock)))
         metricCount = sum(list(duckyDf.Status))
         if metricCount == 6:
             duckyList.append(stock)
@@ -152,7 +152,7 @@ def scanDucky():
 
 def checkStock(stock):
     data = data_location + os.getenv("data_realtime")
-    df = pd.read_csv("{}{}.csv".format(data, stock))
+    df = pd.read_csv("{}{}_D.csv".format(data, stock))
     duckyDf = checkDuckyPattern(df)
     print(duckyDf)
     print("There are {}/8 metrics matched".format(sum(list(duckyDf.Status))))
@@ -162,7 +162,7 @@ def checkStock(stock):
         print("Not a Ducky Pattern")
     if stock in list(pd.read_csv(data_location + os.getenv("high_value_stocks"), header=None)[0]):
         print("\n\n{} is a high value stock".format(stock))
-        df = pd.read_csv("{}{}.csv".format(data, stock))
+        df = pd.read_csv("{}{}_D.csv".format(data, stock))
         print("\nVALUES:")
         df["Value"] = round(df.Close * df.Volume / 1000000, 2)
         print(df[["Date", "Value", "Close", "Change"]].head())

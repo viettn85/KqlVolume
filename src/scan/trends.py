@@ -37,17 +37,20 @@ def isDown(df):
             break
     maxHigh = max(list(df.loc[0:15].High))
     changedPercent = (maxHigh - df.iloc[0].Low)/df.iloc[0].Low
-    reducedTwentyPercent = changedPercent > 20
+    # print(changedPercent)
+    reducedTwentyPercent = changedPercent >= 0.1
     # print(fiveRedCandle, changedPercent, reducedTwentyPercent)
     return fiveRedCandle or reducedTwentyPercent
 
 def scan(stocks):
     downStocks = []
     downBelowMA200Stocks = []
+    high_value_stocks = list(pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)[0])
+    # stocks = ['VHM']
     for stock in stocks:
-        df = pd.read_csv("{}{}.csv".format(data_realtime, stock))
+        df = pd.read_csv("{}{}_D.csv".format(data_realtime, stock))
         getIndicators(df)
-        if isDown(df):
+        if isDown(df) and (stock in high_value_stocks):
             if df.iloc[0].Close < df.iloc[0].MA200:
                 downBelowMA200Stocks.append(stock)
             else:

@@ -39,7 +39,7 @@ def filterStockByValues():
     values = []
     dataLocation = 'data_realtime'
     for stock in stocks:
-        df = pd.read_csv("{}{}.csv".format(data_location + 
+        df = pd.read_csv("{}{}_D.csv".format(data_location + 
             os.getenv(dataLocation), stock), parse_dates=['Date'], index_col=['Date'])
         df.sort_index(inplace=True)
         df["MA20"] = df.Volume.rolling(window=20).mean()
@@ -72,7 +72,7 @@ def categorizeStocks():
     dataLocation = 'data_realtime'
     for stock in stocks:
         # print(stock)
-        df = pd.read_csv("{}{}.csv".format(data_location + os.getenv(dataLocation), stock), parse_dates=['Date'], index_col=['Date'])
+        df = pd.read_csv("{}{}_D.csv".format(data_location + os.getenv(dataLocation), stock), parse_dates=['Date'], index_col=['Date'])
         getIndicators(df)
         # print(df.head())
         # if df.Close[0] > df.EMA200[0]:
