@@ -15,6 +15,7 @@ if __name__ == '__main__':
         getIntraday(stock)
     updatePriceAndVolume()
     reportCashflows()
+    sendCashflowReports()
     exportList('portfolio')
     exportList('vn30')
     exportList('following')
