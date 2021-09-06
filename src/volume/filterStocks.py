@@ -21,7 +21,7 @@ load_dotenv(dotenv_path='stock.env')
 
 results = 'data/market/results/'
 data_location = os.getenv('data')
-
+stock_location = os.getenv('stocks')
 
 def readFile(stock, location):
     df = pd.read_csv("{}{}.csv".format(data_location + location, stock))
@@ -54,7 +54,7 @@ def filterStockByValues():
         df = pd.DataFrame.from_dict(
             {"Stock": highValueStocks, "Value": values})
         df.sort_values("Value", ascending=False, inplace=True)
-        df.to_csv(data_location + os.getenv("high_value_stocks"), header=None, index=None)
+        df.to_csv(os.getenv("high_value_stocks"), header=None, index=None)
 
 def categorizeStocks():
     df = pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)

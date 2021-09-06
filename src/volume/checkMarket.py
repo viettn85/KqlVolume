@@ -155,7 +155,7 @@ def checkStock(stock):
     df = pd.read_csv("{}{}_D.csv".format(data, stock))
     duckyDf = checkDuckyPattern(df)
     print(duckyDf)
-    print("There are {}/8 metrics matched".format(sum(list(duckyDf.Status))))
+    print("There are {}/{} metrics matched".format(sum(list(duckyDf.Status)), len(duckyDf)))
     if all(list(duckyDf.Status)):
         print("A Ducky Pattern on 1D Chart! Please check more on 1H Chart")
     else:

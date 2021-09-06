@@ -10,6 +10,7 @@ from pytz import timezone
 from datetime import datetime
 from dateutil.relativedelta import *
 from ta.trend import ADXIndicator
+from finta import TA
 import logging.config
 logging.config.fileConfig(fname='log.conf', disable_existing_loggers=False)
 logger = logging.getLogger()
@@ -23,6 +24,7 @@ datetime_format = os.getenv("datetime_format")
 
 DATE_FORMAT = "%Y-%m-%d"
 data_location = os.getenv("data")
+stock_location = os.getenv("stocks")
 
 def getMAVolume(df):
     df.sort_values(['Date'], inplace=True)
@@ -89,7 +91,8 @@ def getCurrentTime():
     return str(now.strftime("%H:%M"))
 
 def getStocks(stockFile):
-    return list(pd.read_csv(data_location + stockFile, header=None)[0])
+    # return list(pd.read_csv(stock_location + stockFile, header=None)[0])
+    return list(pd.read_csv(stockFile, header=None)[0])
 
 def getLastCashflow():
     list_of_files = glob.glob(data_location + os.getenv("data_cashflow") + "*") # * means all if need specific format then *.csv
@@ -209,6 +212,7 @@ def getIndicators(df):
     df['PDI'] = round(adxI.adx_pos(), 2)
     df['NDI'] = round(adxI.adx_neg(), 2)
     df['ADX'] = round(adxI.adx(), 2)
+    df['ADX1'] = TA.ADX(df)
 
     # MA
     df['MA20'] = df.Close.rolling(window=20).mean()

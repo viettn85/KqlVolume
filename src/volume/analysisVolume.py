@@ -168,7 +168,7 @@ def reportHourVolumes(stock):
     
 def reportCashflows():
     stocks = getStocks(os.getenv('high_value_stocks'))
-    highValueDf = pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)
+    highValueDf = pd.read_csv(os.getenv('high_value_stocks'), header=None)
     highValueDf.columns = ['Stock', 'Value']
     highValueDf.set_index('Stock', inplace=True)
     date = getLastTradingDay()
@@ -308,14 +308,30 @@ def sendCashflowReports():
     df = pd.read_csv(lastCashflow, index_col='Stock')
     message = ""
 
-    message = message +  "<H2>Portfolio:</H2> \n"
-    portfolioDf = df[df.index.isin(getStocks(os.getenv('portfolio')))]
-    portfolioDf = portfolioDf[["BG", "BB", "BS", "G", "B", "S"]]
-    portfolioDf.sort_values(['BG', 'G'], inplace=True)
-    message = message + html_style_basic(portfolioDf) + "\n\n"
+    # message = message +  "<H2>Portfolio:</H2> \n"
+    # portfolioDf = df[df.index.isin(getStocks(os.getenv('portfolio')))]
+    # portfolioDf = portfolioDf[["BG", "BB", "BS", "G", "B", "S"]]
+    # portfolioDf.sort_values(['BG', 'G'], inplace=True)
+    # message = message + html_style_basic(portfolioDf) + "\n\n"
 
-    message = message +  "<H2>Target:</H2> \n"
-    targetDf = df[df.index.isin(getStocks(os.getenv('target')))]
+    message = message +  "<H2>VN30:</H2> \n"
+    targetDf = df[df.index.isin(getStocks(os.getenv('vn30')))]
+    targetDf.sort_values(['BG', 'G'], ascending=False, inplace=True)
+    message = message + html_style_basic(targetDf) + "\n\n"
+
+    message = message +  "<H2>Bottom:</H2> \n"
+    targetDf = df[df.index.isin(getStocks(os.getenv('bottom')))]
+    targetDf.sort_values(['BG', 'G'], ascending=False, inplace=True)
+    message = message + html_style_basic(targetDf) + "\n\n"
+
+    message = message +  "<H2>Following:</H2> \n"
+    targetDf = df[df.index.isin(getStocks(os.getenv('following')))]
+    targetDf.sort_values(['BG', 'G'], ascending=False, inplace=True)
+    message = message + html_style_basic(targetDf) + "\n\n"
+
+    message = message +  "<H2>Portfolio:</H2> \n"
+    targetDf = df[df.index.isin(getStocks(os.getenv('portfolio')))]
+    targetDf.sort_values(['BG', 'G'], ascending=False, inplace=True)
     message = message + html_style_basic(targetDf) + "\n\n"
 
     message = message +  "<H2>Top Big BUY Trade Counts:</H2> \n"

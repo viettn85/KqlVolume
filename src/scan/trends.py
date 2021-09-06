@@ -38,29 +38,69 @@ def isDown(df):
     maxHigh = max(list(df.loc[0:15].High))
     changedPercent = (maxHigh - df.iloc[0].Low)/df.iloc[0].Low
     # print(changedPercent)
-    reducedTwentyPercent = changedPercent >= 0.1
+    reducedTwentyPercent = changedPercent >= 0.2
     # print(fiveRedCandle, changedPercent, reducedTwentyPercent)
     return fiveRedCandle or reducedTwentyPercent
+
+def isOnDownTrend(df):
+    row = df.iloc[0]
+    return (row.Close < row.MA20) and (row.MA50 < row.MA200) and (row.MA20 < row.MA200)
+
+def isDownAsAdx(df):
+    row = df.iloc[0]
+    prow1 = df.iloc[1]
+    prow5 = df.iloc[5]
+    isADXIncreasing = (row.ADX > prow1.ADX) and (row.ADX > prow5.ADX)
+    isNDIIncreasing = (row.NDI > prow1.NDI) and (row.NDI > prow5.NDI)
+    isADXAbove30 = row.ADX > 30
+    isNDIAbove30 = row.NDI > 30
+    return isADXIncreasing and isNDIIncreasing and (isADXAbove30 or isNDIAbove30)
+
+def isDownAsAdx2(df):
+    row = df.iloc[0]
+    prow1 = df.iloc[1]
+    isADXIncreasing = (row.ADX > prow1.ADX)
+    isADXAbove30 = row.ADX > 30
+    isNDIAbovePDI = row.NDI > row.PDI
+    return isADXIncreasing and isNDIAbovePDI and isADXAbove30
 
 def scan(stocks):
     downStocks = []
     downBelowMA200Stocks = []
+    downtrend = []
+    adx = []
+    adx2 = []
     high_value_stocks = list(pd.read_csv(data_location + os.getenv('high_value_stocks'), header=None)[0])
     # stocks = ['VHM']
     for stock in stocks:
         df = pd.read_csv("{}{}_D.csv".format(data_realtime, stock))
         getIndicators(df)
-        if isDown(df) and (stock in high_value_stocks):
-            if df.iloc[0].Close < df.iloc[0].MA200:
-                downBelowMA200Stocks.append(stock)
-            else:
-                downStocks.append(stock)
+        # if isDown(df) and (stock in high_value_stocks):
+        #     if df.iloc[0].Close < df.iloc[0].MA200:
+        #         downBelowMA200Stocks.append(stock)
+        #     else:
+        #         downStocks.append(stock)
+        # if isOnDownTrend(df):
+        #     downtrend.append(stock)
+        if isDownAsAdx(df):
+            adx.append(stock)
+        if isDownAsAdx2(df):
+            adx2.append(stock)
     if len(downStocks) > 0:
-        print("Stock on down trend above MA200:")
+        print("Down stocks above MA200:")
         print(",".join(downStocks))
     if len(downBelowMA200Stocks) > 0:
-        print("Stock on down trend under MA200:")
+        print("Down stocks under MA200:")
         print(",".join(downBelowMA200Stocks))
+    if len(downtrend) > 0:
+        print("Stock on down trend:")
+        print(",".join(downtrend))
+    if len(adx) > 0:
+        print("Stock on adx:")
+        print(",".join(adx))
+    if len(adx2) > 0:
+        print("Stock on adx2:")
+        print(",".join(adx2))
 
 if __name__ == "__main__":
     stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])

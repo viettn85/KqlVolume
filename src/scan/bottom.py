@@ -139,7 +139,7 @@ def checkTopOnCorrection(df, rowIndex):
     #     print(df.iloc[rowIndex].Date, "ADX Top and Decreasing")
     return isADXOnBottom and isNDIIncreased and isHistogramDecreased and isBelowMA200 and isStochOverBought and isMACDPossitive
 
-def filterStocks(stocks, rowIndex):
+def filterStocks(stocks, rowIndex, resolution):
     topStocks = []
     bottomStocks = []
     bottomCorrectionStocks = []
@@ -149,7 +149,7 @@ def filterStocks(stocks, rowIndex):
     date = ""
     for stock in stocks:
         # logger.info("Scanning {}".format(stock))
-        df = pd.read_csv("{}{}_D.csv".format(data_realtime, stock))
+        df = pd.read_csv("{}{}_{}.csv".format(data_realtime, stock, resolution))
         # subDf = pd.read_csv("{}{}_{}.csv".format(intraday, smallTimeframe, stock))
         date = df.iloc[rowIndex].Date
         getIndicators(df)
@@ -167,8 +167,8 @@ def filterStocks(stocks, rowIndex):
             adxBottomDecreasing.append(stock)
     return (date, topStocks, bottomStocks, topCorrectionStocks, bottomCorrectionStocks, adxBottomIncreasing, adxBottomDecreasing)
 
-def scan(stocks, rowIndex):
-    (date, topStocks, bottomStocks, topCorrectionStocks, bottomCorrectionStocks, adxBottomIncreasing, adxBottomDecreasing) = filterStocks(stocks, rowIndex)
+def scan(stocks, rowIndex, resolution):
+    (date, topStocks, bottomStocks, topCorrectionStocks, bottomCorrectionStocks, adxBottomIncreasing, adxBottomDecreasing) = filterStocks(stocks, rowIndex, resolution)
     print("Scanning on {}".format(date))
     if len(topStocks) > 0:
         print(msgTop)
@@ -230,8 +230,8 @@ def checkStock(stock):
             if len(patterns) > 0:
                 print(df.iloc[rowIndex].Date, ",".join(patterns))
 
-def scanStocks(stocks):
-    scan(stocks, 0)
+def scanStocks(stocks, resolution):
+    scan(stocks, 0, resolution)
 
 def scanHistoricalStocks(stocks):
     for i in (1, 5):
@@ -240,10 +240,12 @@ def scanHistoricalStocks(stocks):
 if __name__ == "__main__":
     stocks = list(pd.read_csv(data_location + os.getenv('all_stocks'), header=None)[0])
     if (len(sys.argv) == 1):    
-        scanStocks(stocks)
+        scanStocks(stocks, "D")
     if (len(sys.argv) == 2):
         if(sys.argv[1] == 'history'):
             scanHistoricalStocks(stocks)
+        if(sys.argv[1] == '60'):
+            scanStocks(stocks, "60")
         if (len(sys.argv[1]) == 3) or (sys.argv[1] in ['VN30', 'VNINDEX']):
             print("Check stock")
             checkStock(sys.argv[1])

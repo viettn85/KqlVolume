@@ -41,17 +41,17 @@ def draw(stock, location, timeframe):
                     fplt.make_addplot(df['MACD'], panel=2,color='blue'),
                     fplt.make_addplot(df['MACD_SIGNAL'], panel=2,color='red'),
                     fplt.make_addplot(df['MACD0'], panel=2,color='grey'),
-                    fplt.make_addplot(df['%K'], panel=3, color='red'),
-                    fplt.make_addplot(df['%D'], panel=3,color='blue'),
-                    fplt.make_addplot(df['Stoch20'], panel=3,color='grey'),
-                    fplt.make_addplot(df['Stoch80'], panel=3,color='grey'),
-                    fplt.make_addplot(df['RSI'], panel=4,color='red'),
-                    fplt.make_addplot(df['RSI70'], panel=4,color='grey'),
-                    fplt.make_addplot(df['RSI30'], panel=4,color='grey'),
-                    fplt.make_addplot(df['ADX'], panel=5,color='blue'),
-                    fplt.make_addplot(df['PDI'], panel=5,color='green'),
-                    fplt.make_addplot(df['NDI'], panel=5,color='red'),
-                    fplt.make_addplot(df.ADX20, type = 'line', panel=5,color='grey')
+                    # fplt.make_addplot(df['%K'], panel=3, color='red'),
+                    # fplt.make_addplot(df['%D'], panel=3,color='blue'),
+                    # fplt.make_addplot(df['Stoch20'], panel=3,color='grey'),
+                    # fplt.make_addplot(df['Stoch80'], panel=3,color='grey'),
+                    # fplt.make_addplot(df['RSI'], panel=4,color='red'),
+                    # fplt.make_addplot(df['RSI70'], panel=4,color='grey'),
+                    # fplt.make_addplot(df['RSI30'], panel=4,color='grey'),
+                    fplt.make_addplot(df['ADX'], panel=3,color='blue'),
+                    fplt.make_addplot(df['PDI'], panel=3,color='green'),
+                    fplt.make_addplot(df['NDI'], panel=3,color='red'),
+                    fplt.make_addplot(df.ADX20, panel=3,color='grey')
                     ]
         # s  = fplt.make_mpf_style(base_mpl_style="seaborn", y_on_right=True, marketcolors=mc, mavcolors=["red","orange","skyblue"])
         s  = fplt.make_mpf_style(base_mpl_style="seaborn", y_on_right=True, marketcolors=mc)
